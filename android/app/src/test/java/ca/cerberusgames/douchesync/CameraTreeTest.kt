@@ -35,7 +35,7 @@ class CameraTreeTest {
             val fields = projection ?: emptyArray()
             val cursor = MatrixCursor(fields)
             fun row(id: String, name: String, mime: String, size: Long = 0) {
-                val data: Map<String,Any> =
+                val data: Map<String, Any> =
                     mapOf(
                         DocumentsContract.Document.COLUMN_DOCUMENT_ID to id,
                         DocumentsContract.Document.COLUMN_DISPLAY_NAME to name,

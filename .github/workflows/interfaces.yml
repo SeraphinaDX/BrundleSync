@@ -50,6 +50,8 @@ jobs:
         run: go build -trimpath -ldflags="${{ runner.os == 'Windows' && '-H=windowsgui' || '' }}" -o ../DoucheSyncGUI${{ runner.os == 'Windows' && '.exe' || '' }} .
       - name: Native Linux window startup and graceful shutdown
         if: runner.os == 'Linux'
+        env:
+          FYNE_PLATFORM: x11
         run: |
           set +e
           timeout 5s xvfb-run -a ./DoucheSyncGUI
@@ -82,7 +84,7 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Android SDK and emulator image
-        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'ndk;28.2.13676358' emulator 'system-images;android-35;google_apis;x86_64'
+        run: bash scripts/ci-android-sdk.sh
       - name: Test mobile adapter
         working-directory: mobile
         run: go test -race ./...
