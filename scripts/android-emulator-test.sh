@@ -4,8 +4,13 @@
 set -euo pipefail
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 SDK=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}
+if [[ -z "$SDK" ]]; then echo 'Set ANDROID_HOME to the Android SDK directory.' >&2; exit 1; fi
 export PATH="$SDK/platform-tools:$SDK/emulator:$SDK/cmdline-tools/latest/bin:$PATH"
-printf 'no\n' | avdmanager create avd --force --name douchesync-test --package 'system-images;android-35;google_apis;x86_64'
+export ANDROID_AVD_HOME="$ROOT/.build/avd"
+export ANDROID_USER_HOME="$ROOT/.build/android-user"
+mkdir -p "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+printf 'no\n' | avdmanager create avd --force --name douchesync-test --path "$ANDROID_AVD_HOME/douchesync-test.avd" --package 'system-images;android-35;google_apis;x86_64'
+emulator -list-avds
 adb start-server
 emulator -avd douchesync-test -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader -memory 2048 -cores 2 > "$ROOT/.build/emulator.log" 2>&1 &
 EMU_PID=$!
