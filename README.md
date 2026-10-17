@@ -453,6 +453,7 @@ Each shared root has a **local-only** `.douchesync` directory:
 - `conflicts/`: saved losing versions from resolved concurrent edits.
 - `versions/`: saved local contents before remote replacement or deletion.
 - `transfers/`: incomplete downloads and temporary archive/history files.
+- `incoming/`: private resumable Android camera uploads; completed files move into the shared tree.
 - `updates/`: pending history records, replayed on startup and cleared after a checkpoint.
 - `lock`: an OS file lock that prevents two processes from using the same root.
 
@@ -592,9 +593,12 @@ and permission-only changes are not synchronized. File permissions and mtime
 are applied when receiving changed content. File-to-directory type changes
 require manual reconciliation.
 
-Files transfer whole rather than as deltas, and interrupted downloads restart.
-Scans hash every file to avoid relying solely on timestamps. Large trees may
-use noticeable disk I/O. A folder has a 64 MiB manifest/state limit and up to
+Desktop sync transfers whole files rather than deltas, and interrupted downloads
+restart. Android camera uploads resume verified chunks. Desktop startup and
+scheduled full verification hash contents; between them, filesystem notifications
+and validated in-memory hash caches avoid repeatedly reading unchanged files.
+Initial verification and large changed trees can still use noticeable disk I/O.
+A folder has a 64 MiB manifest/state limit and up to
 100,000 tracked paths (including retained missing-file and deletion history),
 128 device counters per file, and a default 10 GiB individual-file limit.
 The discovery server defaults to 1,000 registered folder/device pairs.

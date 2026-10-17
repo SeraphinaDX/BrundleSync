@@ -11,8 +11,9 @@ Built on Linux x86-64 with Go 1.27.1 on 2026-10-17.
 - Discovery writes no files to its working directory.
 - All processes shut down cleanly on SIGTERM.
 - Linux x86-64 binary built with CGO_ENABLED=0 and exercised in the process test.
-- Native Linux and Windows CI passed for 0.4.0; the updated engine and interface
-  suites run on both platforms in GitHub Actions.
+- Native Linux and Windows CI pass the updated engine and desktop interface
+  suites, vet checks and executable builds for 0.5.0. Linux CI also opens the
+  native GUI under Xvfb and checks orderly signal shutdown.
 
 Coverage includes simultaneous transfers, multiple-folder isolation, persistent
 state after restart, concurrent edits, edit/delete conflicts, deletion disabled,
@@ -149,10 +150,17 @@ AGP 8.13.2, SDK 36 and NDK 28.2.13676358. Four Android JVM tests pass: selected-
 media enumeration (including subfolders/cycles/cancellation), scoped receipt
 invalidation, unknown metadata and resumable forced rechecks. Native libraries
 are built for ARM, ARM64 and x86-64. The local software emulator could not boot in
-this execution environment; native JNI/peer tests are configured in CI on a KVM
-host. The integration script verifies exact multi-chunk bytes on a real desktop
-process and an empty discovery working directory.
+this execution environment. Both native instrumentation tests pass in CI on an
+API 35 x86-64 emulator with KVM: Go library loading/cancellation and a direct
+file-descriptor upload. The integration script verifies the exact 2 MiB + 23 byte
+multi-chunk result on a real desktop process, retention of the phone source, and
+an empty discovery working directory.
+
+The [complete interface workflow](https://github.com/SeraphinaDX/DoucheSync/actions/runs/39076697397)
+passed Linux GUI, Windows GUI and Android native-peer checks for source commit
+`01f73002632053aac2dcb51794833bdb5f9aba48`. The existing CLI workflow also passes
+on that commit. CI publishes desktop executables and a signed debug APK.
 
 Physical phones, camera providers, SD cards, long-running scheduling and OEM
-battery policies need field testing. Android is a preview; local compilation and
-JVM tests alone are not a claim that every device's background behavior works.
+battery policies need field testing. Android is a preview; emulator and JVM
+tests are not a claim that every device's background behavior works.
