@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:orientation="vertical" android:padding="24dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:text="DoucheSync" android:textSize="30sp" android:textStyle="bold" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:text="@string/title" android:textSize="22sp" android:layout_marginTop="12dp" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:text="@string/intro" android:layout_marginBottom="16dp" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <EditText android:id="@+id/device_id" android:hint="@string/device_id" android:singleLine="true" android:inputType="textVisiblePassword" android:importantForAutofill="no" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <EditText android:id="@+id/discovery_url" android:hint="@string/discovery_url" android:singleLine="true" android:inputType="textUri" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <EditText android:id="@+id/discovery_token" android:hint="@string/discovery_token" android:singleLine="true" android:inputType="textPassword" android:importantForAutofill="no" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <EditText android:id="@+id/folder_id" android:hint="@string/folder_id" android:singleLine="true" android:inputType="textVisiblePassword" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <EditText android:id="@+id/folder_secret" android:hint="@string/folder_secret" android:singleLine="true" android:inputType="textPassword" android:importantForAutofill="no" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/choose_folder" android:text="@string/choose_folder" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/source_folder" android:text="@string/no_folder" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <CheckBox android:id="@+id/automatic" android:text="@string/automatic" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <CheckBox android:id="@+id/unmetered" android:text="@string/unmetered" android:checked="true" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <CheckBox android:id="@+id/charging" android:text="@string/charging" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/save" android:text="@string/save" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/backup_now" android:text="@string/backup_now" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/stop" android:text="@string/stop" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <Button android:id="@+id/recheck" android:text="@string/recheck" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/status" android:text="@string/not_configured" android:layout_marginTop="16dp" android:layout_marginBottom="16dp" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:text="@string/desktop_help" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    </LinearLayout>
+</ScrollView>

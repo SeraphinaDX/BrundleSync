@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=DoucheSync
+Comment=Direct peer-to-peer folder sync
+Exec=DoucheSyncGUI -start
+Icon=ca.cerberusgames.douchesync
+Terminal=false
+Categories=Network;FileTransfer;
+StartupWMClass=ca.cerberusgames.douchesync

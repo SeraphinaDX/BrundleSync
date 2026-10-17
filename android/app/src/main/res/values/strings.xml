@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">DoucheSync</string>
+    <string name="title">Camera backup</string>
+    <string name="intro">Back up photos and videos directly to your computers. Removing a photo from this phone keeps its desktop backup.</string>
+    <string name="device_id">Phone device ID</string>
+    <string name="discovery_url">Discovery URL (https://…)</string>
+    <string name="discovery_token">Discovery token</string>
+    <string name="folder_id">Desktop shared folder ID</string>
+    <string name="folder_secret">Folder secret</string>
+    <string name="choose_folder">Choose camera folder</string>
+    <string name="automatic">Automatic backup (Android schedules when to run)</string>
+    <string name="unmetered">Use unmetered networks only (usually Wi-Fi)</string>
+    <string name="charging">Require charging</string>
+    <string name="save">Save settings</string>
+    <string name="backup_now">Back up now</string>
+    <string name="stop">Stop backups</string>
+    <string name="recheck">Recheck previously backed-up files</string>
+    <string name="desktop_help">On your computer, enable receive_backups = true for this shared folder. At least one matching desktop peer must be reachable. Back up now respects network and charging requirements.</string>
+    <string name="backup_channel">Camera backup</string>
+    <string name="backup_notification">DoucheSync camera backup</string>
+    <string name="not_configured">Choose a folder and save your connection settings.</string>
+    <string name="no_folder">No camera folder selected</string>
+    <string name="saved">Settings saved.</string>
+    <string name="queued">Backup queued. Android will run it when the network and charging requirements are met.</string>
+    <string name="stopping">Stopping backup…</string>
+</resources>

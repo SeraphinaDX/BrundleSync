@@ -5,3 +5,14 @@
 /bin/
 *.zip
 __pycache__/
+/DoucheSyncGUI
+/DoucheSyncGUI.exe
+/.build/
+/android/.gradle/
+/android/.kotlin/
+/android/build/
+/android/local.properties
+/android/app/build/
+/android/app/libs/
+*.jks
+*.keystore

@@ -1,0 +1,111 @@
+name: Desktop and Android
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    name: Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            race: -race
+          - os: windows-latest
+            race: ''
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: stable
+          cache-dependency-path: desktop/go.sum
+      - name: Linux graphics development packages
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev pkg-config xvfb
+      - name: Windows C compiler
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          foreach ($dir in @('C:\mingw64\bin', 'C:\msys64\mingw64\bin', 'C:\msys64\ucrt64\bin')) {
+            if (Test-Path "$dir\gcc.exe") { $dir >> $env:GITHUB_PATH; break }
+          }
+      - name: Desktop tests
+        working-directory: desktop
+        run: go test -tags ci ${{ matrix.race }} ./...
+      - name: Desktop vet
+        working-directory: desktop
+        run: go vet -tags ci ./...
+      - name: Build desktop
+        working-directory: desktop
+        env:
+          CGO_ENABLED: '1'
+        run: go build -trimpath -ldflags="${{ runner.os == 'Windows' && '-H=windowsgui' || '' }}" -o ../DoucheSyncGUI${{ runner.os == 'Windows' && '.exe' || '' }} .
+      - name: Native Linux window startup and graceful shutdown
+        if: runner.os == 'Linux'
+        env:
+          FYNE_PLATFORM: x11
+        run: |
+          set +e
+          timeout 5s xvfb-run -a ./DoucheSyncGUI
+          result=$?
+          if [ "$result" != 124 ]; then exit 1; fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: DoucheSyncGUI-${{ runner.os }}
+          path: |
+            DoucheSyncGUI*
+            LICENSE
+            docs/DESKTOP.md
+            desktop/assets/douchesync.svg
+          if-no-files-found: error
+
+  android:
+    name: Android APK and native peer transfer
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: stable
+          cache-dependency-path: mobile/go.sum
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK and emulator image
+        run: bash scripts/ci-android-sdk.sh
+      - name: Emulator runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libpulse0 libnss3 libx11-xcb1 libxcb-cursor0 libxkbcommon0 libglu1-mesa
+      - name: Test mobile adapter
+        working-directory: mobile
+        run: go test -race ./...
+      - name: Build APK and run Android unit tests
+        working-directory: android
+        run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest
+      - name: Build native peer fixture
+        env:
+          CGO_ENABLED: '0'
+        run: go build -trimpath -o DoucheSync .
+      - name: Enable KVM
+        run: sudo chmod a+rw /dev/kvm
+      - name: Android native JNI and pinned peer transfer
+        run: bash scripts/android-emulator-test.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: DoucheSync-Android-debug
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            LICENSE
+            docs/ANDROID.md
+          if-no-files-found: error
