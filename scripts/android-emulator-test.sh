@@ -12,7 +12,8 @@ EMU_PID=$!
 trap 'kill "$EMU_PID" 2>/dev/null || true' EXIT
 booted=false
 for attempt in $(seq 1 120); do
-  if timeout 3s adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' | rg -q '^1$'; then booted=true; break; fi
+  result=$(timeout 3s adb shell getprop sys.boot_completed 2>/dev/null || true)
+  if [[ "${result//$'\r'/}" == 1 ]]; then booted=true; break; fi
   if ! kill -0 "$EMU_PID" 2>/dev/null; then cat "$ROOT/.build/emulator.log"; exit 1; fi
   sleep 1
 done

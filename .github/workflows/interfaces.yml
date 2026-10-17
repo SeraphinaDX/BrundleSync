@@ -85,6 +85,8 @@ jobs:
           java-version: '17'
       - name: Android SDK and emulator image
         run: bash scripts/ci-android-sdk.sh
+      - name: Emulator runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libpulse0 libnss3 libx11-xcb1 libxcb-cursor0 libxkbcommon0 libglu1-mesa
       - name: Test mobile adapter
         working-directory: mobile
         run: go test -race ./...
