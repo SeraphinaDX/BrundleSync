@@ -23,6 +23,7 @@ path = "~/Documents/Shared"
 # Same ID and secret on all clients sharing this folder. Paths may differ.
 secret = "REPLACE_WITH_DOCUMENTS_KEY_FROM_KEYGEN"
 sync_deletes = false
+receive_backups = false # true permits Android camera backups into this folder
 ignore = ["*.tmp", "*.swp", ".git", "node_modules"]
 max_file_size = 10737418240 # 10 GiB
 

@@ -1,9 +1,9 @@
 # DoucheSync
 
-DoucheSync 0.4.0 synchronizes files in one or more folders directly between
+DoucheSync 0.5.0 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
 
-One executable has two modes:
+The headless CLI executable has two modes:
 
 - **Server:** an authenticated, in-memory discovery directory. It receives only
   opaque folder identifiers, device IDs, client endpoints, certificate
@@ -16,6 +16,26 @@ One executable has two modes:
 The server can run on a VPS while the clients run on your desktops and laptops.
 Local folder paths can differ between machines. Matching folder **IDs and
 secrets** determine which folders synchronize.
+
+## Desktop and Android
+
+- [Desktop Fyne GUI](docs/DESKTOP.md): the same TOML, identity and history as the
+  CLI, with folders, peer status, transfer progress and configuration controls.
+- [Android camera backup](docs/ANDROID.md): a native folder picker and scheduled,
+  one-way photo/video backup, backed by the shared Go engine. Large files resume
+  verified chunks after interruption. Originals are never deleted by the app.
+- [Maintainer architecture](docs/ARCHITECTURE.md): engine/interface boundaries,
+  module ownership and build/test entry points.
+
+```sh
+make gui
+./DoucheSyncGUI
+```
+
+Stop an existing CLI client before starting the GUI's engine. The Android app
+requires `receive_backups = true` on a receiving desktop folder; it remains a
+preview pending physical-phone field testing. CI provides desktop builds and a
+signed debug APK for testing, not a production Play Store release.
 
 ## What this release includes
 
@@ -310,6 +330,7 @@ id = "documents"                         # match across participating clients
 path = "~/Documents/Shared"               # local path; may differ by machine
 secret = "YOUR_DISTINCT_RANDOM_FOLDER_KEY"
 sync_deletes = false
+receive_backups = false                   # opt in to Android camera uploads
 ignore = ["*.tmp", "*.swp", ".git", "node_modules"]
 max_file_size = 10737418240               # bytes; default 10 GiB
 ```
@@ -330,9 +351,9 @@ transferred in full. This release does not implement filesystem watching,
 block-level transfers, or parallel chunks of a single large file. Initial
 scan time and disk/history writes can still limit throughput.
 
-Version 0.4.0 is a client performance update. Stop the clients, run
+Version 0.5.0 adds desktop and Android interfaces around the shared engine. Stop the clients, run
 `git pull --ff-only` and `make build`, then restart them. Existing configurations
-get filesystem watching and incremental hashing without edits; keep your IDs,
+keep filesystem watching and incremental hashing without edits; preserve your IDs,
 secrets, identity files, and
 `.douchesync` history. A 0.2.0 discovery server remains compatible.
 

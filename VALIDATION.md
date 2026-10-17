@@ -1,8 +1,9 @@
-# Validation for DoucheSync 0.4.0
+# Validation for DoucheSync 0.5.0
 
-Built on Linux x86-64 with Go 1.27.1 on 2026-10-08.
+Built on Linux x86-64 with Go 1.27.1 on 2026-10-17.
 
-- All 71 automated Go tests pass locally on Linux, including the race detector.
+- All 82 engine tests pass locally with the race detector. Three desktop tests
+  and one mobile binding-adapter test also pass with the race detector.
 - `go vet -buildvcs=false ./...` passes.
 - Three separate client processes and one discovery server pass the process smoke test.
 - Initial files, remote updates, enabled deletions, and new nested folders converge across all three clients.
@@ -10,7 +11,8 @@ Built on Linux x86-64 with Go 1.27.1 on 2026-10-08.
 - Discovery writes no files to its working directory.
 - All processes shut down cleanly on SIGTERM.
 - Linux x86-64 binary built with CGO_ENABLED=0 and exercised in the process test.
-- Windows x86-64 binary built with CGO_ENABLED=0 by cross-compilation. Native Linux and Windows CI passed for 0.3.2; the updated suite runs on both platforms in GitHub Actions.
+- Native Linux and Windows CI passed for 0.4.0; the updated engine and interface
+  suites run on both platforms in GitHub Actions.
 
 Coverage includes simultaneous transfers, multiple-folder isolation, persistent
 state after restart, concurrent edits, edit/delete conflicts, deletion disabled,
@@ -120,3 +122,37 @@ from 1.968 seconds on 0.3.2 to 0.168 seconds on 0.4.0: about 13.73% versus 1.18%
 of one CPU over the full run. This includes startup verification and discovery;
 it is not a steady-state per-client measurement or a promise about a particular
 laptop. No contents changed during either run. Normal default polling is 10 seconds.
+
+The 0.5.0 interface changes preserve all existing CLI commands, default config
+paths, identities and version-1 histories. The three-client process test passes
+after moving shared code into `engine` and keeping a thin CLI adapter. The
+headless binary still builds with CGO_ENABLED=0 and vendored dependencies.
+
+New camera tests cover direct authenticated/pinned transfer, idempotent retry,
+source deletion without restoration, desktop replication, filename collisions,
+refusal to overwrite edited backups, history-write failure without an
+acknowledgement, recovery after interrupted commit, restart replay, unauthorized
+and corrupt requests, traversal rejection, explicit reception opt-in, cancellation,
+verified-prefix resume across receiver restart, and corrupt partial rejection.
+API tests check comment-preserving configuration edits, cancelled scan recovery,
+and cancellation/bounded lifetime of upload locks.
+
+Desktop tests check use of the existing TOML without implicit engine startup,
+prevention of overlapping starts, lock release before restart, and preservation
+of valid config when an invalid edit is submitted. A software-rendered screenshot
+was inspected, and the native Linux GUI was built. Status snapshots use cached
+counts and never wait for a folder lock; no directory walks are performed by the
+UI's one-second refresh.
+
+Android debug APK and instrumentation APK compile with Go 1.27.1, JDK 17,
+AGP 8.13.2, SDK 36 and NDK 28.2.13676358. Four Android JVM tests pass: selected-tree
+media enumeration (including subfolders/cycles/cancellation), scoped receipt
+invalidation, unknown metadata and resumable forced rechecks. Native libraries
+are built for ARM, ARM64 and x86-64. The local software emulator could not boot in
+this execution environment; native JNI/peer tests are configured in CI on a KVM
+host. The integration script verifies exact multi-chunk bytes on a real desktop
+process and an empty discovery working directory.
+
+Physical phones, camera providers, SD cards, long-running scheduling and OEM
+battery policies need field testing. Android is a preview; local compilation and
+JVM tests alone are not a claim that every device's background behavior works.
