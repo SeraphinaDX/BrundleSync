@@ -3,6 +3,8 @@
 DoucheSync 0.5.0 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
 
+![Screenshot](douchesync.avif)
+
 The headless CLI executable has two modes:
 
 - **Server:** an authenticated, in-memory discovery directory. It receives only
