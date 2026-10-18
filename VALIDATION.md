@@ -1,9 +1,9 @@
-# Validation for DoucheSync 0.5.0
+# Validation for DoucheSync 0.5.1
 
-Built on Linux x86-64 with Go 1.27.1 on 2026-10-17.
+Built on Linux x86-64 with Go 1.27.1 on 2026-10-18.
 
-- All 82 engine tests pass locally with the race detector. Three desktop tests
-  and one mobile binding-adapter test also pass with the race detector.
+- All 89 engine tests pass locally with the race detector. Three desktop tests
+  and one mobile binding-adapter test also pass.
 - `go vet -buildvcs=false ./...` passes.
 - Three separate client processes and one discovery server pass the process smoke test.
 - Initial files, remote updates, enabled deletions, and new nested folders converge across all three clients.
@@ -164,3 +164,13 @@ on that commit. CI publishes desktop executables and a signed debug APK.
 Physical phones, camera providers, SD cards, long-running scheduling and OEM
 battery policies need field testing. Android is a preview; emulator and JVM
 tests are not a claim that every device's background behavior works.
+
+The 0.5.1 regression reproduced a deleted `Code` tree retaining empty parents
+on the receiver. Seven new tests cover parallel nested-tree deletion with
+retained recovery copies, preservation of local/ignored files and unrelated
+empty folders, checkpoint ordering, cancelled/restarted cleanup, historical
+empty-parent repair, one-shot idle behavior, deletion opt-out, symlink/root
+confinement, directory-only removal, active watchers, Unicode paths and a
+concurrent offline edit. The process test also deletes a nested tree and waits
+for its empty parents to disappear on all three real clients. Directory cleanup
+does not change the protocol or history format.

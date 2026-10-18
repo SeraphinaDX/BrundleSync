@@ -544,6 +544,7 @@ func (c *Client) syncPeer(ctx context.Context, f *Folder, a Announcement) error 
 			deleteErrs = append(deleteErrs, fmt.Errorf("checkpoint deletions: %w", err))
 		}
 	}
+	f.pruneDeletedParentsLocked(ctx)
 	f.mu.Unlock()
 	if len(deletePaths) != 0 {
 		log.Printf("[%s] deletion check: %d paths, %d workers, %s", f.cfg.ID, len(deletePaths), min(deleteWorkers, len(deletePaths)), time.Since(started).Round(time.Millisecond))

@@ -4,6 +4,7 @@ import json
 import hashlib
 import pathlib
 import secrets
+import shutil
 import socket
 import subprocess
 import sys
@@ -128,6 +129,11 @@ def main():
                      processes, logs, "watcher indexed a newly created subtree", 3)
             wait_for(lambda: all(content(root / "new/deep/file.txt") == "nested change" for root in folders),
                      processes, logs, "new subtree propagated")
+            shutil.rmtree(folders[0] / "new")
+            wait_for(lambda: local_entry(folders[0], "new/deep/file.txt").get("deleted"),
+                     processes, logs, "watcher indexed the removed subtree", 3)
+            wait_for(lambda: all(not (root / "new").exists() for root in folders),
+                     processes, logs, "directory deletion removed empty parents on every client")
             if list(server_dir.iterdir()):
                 raise RuntimeError("discovery wrote files to its working directory")
             print("PASS: discovery working directory contains no files", flush=True)

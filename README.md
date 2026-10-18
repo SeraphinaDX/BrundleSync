@@ -1,6 +1,6 @@
 # DoucheSync
 
-DoucheSync 0.5.0 synchronizes files in one or more folders directly between
+DoucheSync 0.5.1 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
 
 ![Screenshot](douchesync.avif)
@@ -429,6 +429,15 @@ at their next peer check (`scan_interval`, 10 seconds by default). Polling fallb
 and missed events can add delay. Large files also take time to retain as recovery
 copies.
 
+Since 0.5.1, clients remove empty parent directories after applying and
+checkpointing file deletions. Cleanup is deduplicated and runs deepest first,
+only for ancestors of deleted tracked files. The shared root, unrelated empty
+folders and directories containing any remaining files, ignored content or
+subfolders are preserved. Startup also repairs empty parents left by older
+versions using saved deletion history. This requires `sync_deletes = true`;
+there is no extra directory walk during idle peer checks. Upgrade the receiving
+clients; the discovery server needs no change for this fix.
+
 Since 0.3.2, deletion preparation hashes and copies up to four independent files
 at once, outside the shared folder lock. Set `parallel_deletes` under `[client]`
 to tune this (1..32, default 4). `parallel_transfers` controls downloads separately.
@@ -588,8 +597,9 @@ found is logged and is not an error. Discovery or transfer errors make
 ## Current limits
 
 This initial release synchronizes **regular file contents** and their nested
-paths. It creates parent directories for received files; empty directories
-are not exchanged, and empty directories left after deletions are not removed.
+paths. It creates parent directories for received files and removes empty
+parents after synced file deletions. Independently created empty directories
+are not exchanged or recursively deleted.
 Symlinks, devices, ACLs, extended attributes, ownership, hard-link relationships,
 and permission-only changes are not synchronized. File permissions and mtime
 are applied when receiving changed content. File-to-directory type changes

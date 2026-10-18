@@ -157,6 +157,9 @@ func (c *Client) applyDeletion(ctx context.Context, a Announcement, f *Folder, p
 		if err = ctx.Err(); err == nil {
 			f.state.Entries[p] = merged
 			err = f.persistEntryLocked(p, true)
+			if err == nil && merged.Deleted {
+				f.queueDeletedParentsLocked(p)
+			}
 		}
 		f.mu.Unlock()
 		return err
@@ -205,6 +208,7 @@ func (c *Client) applyDeletion(ctx context.Context, a Announcement, f *Folder, p
 	if err = f.persistEntryLocked(p, true); err != nil {
 		return err
 	}
+	f.queueDeletedParentsLocked(p)
 	log.Printf("[%s] deleted %s (from %s; previous copy retained)", f.cfg.ID, p, a.Device)
 	return nil
 }
