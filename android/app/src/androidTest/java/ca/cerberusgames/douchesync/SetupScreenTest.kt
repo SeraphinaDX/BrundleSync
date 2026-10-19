@@ -4,6 +4,7 @@ package ca.cerberusgames.douchesync
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.util.Base64
 import android.widget.Button
 import android.widget.EditText
@@ -13,6 +14,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import ca.cerberusgames.douchesync.mobile.Mobile
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Assume.assumeFalse
@@ -24,7 +27,19 @@ class SetupScreenTest {
     private val context
         get() = InstrumentationRegistry.getInstrumentation().targetContext
 
-    private fun screenshot(name: String) {
+    private fun screenshot(name: String, scenario: ActivityScenario<MainActivity>) {
+        // Main-thread idleness alone can precede the first rendered frame.
+        val frame = CountDownLatch(1)
+        scenario.onActivity { activity ->
+            val view = activity.window.decorView
+            if (Build.VERSION.SDK_INT >= 29 && view.isHardwareAccelerated) {
+                view.viewTreeObserver.registerFrameCommitCallback { frame.countDown() }
+                view.invalidate()
+            } else {
+                view.postOnAnimation { view.postOnAnimation { frame.countDown() } }
+            }
+        }
+        assertTrue("UI frame did not render", frame.await(5, TimeUnit.SECONDS))
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.waitForIdleSync()
         val bitmap = instrumentation.uiAutomation.takeScreenshot() ?: error("No screenshot")
@@ -68,7 +83,7 @@ class SetupScreenTest {
                 assertFalse(config.exists())
                 assertFalse(activity.findViewById<Button>(R.id.backup_now).isEnabled)
             }
-            screenshot("android-setup.png")
+            screenshot("android-setup.png", scenario)
             scenario.onActivity { activity ->
                 assertNull(activity.reviewSetup("not a setup code"))
                 assertEquals(
@@ -105,7 +120,7 @@ class SetupScreenTest {
                     )
                     assertFalse(activity.findViewById<Button>(R.id.backup_now).isEnabled)
                 }
-                screenshot("android-status.png")
+                screenshot("android-status.png", scenario)
             }
         } finally {
             config.delete()
