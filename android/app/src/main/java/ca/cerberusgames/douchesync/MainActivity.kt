@@ -64,6 +64,7 @@ class MainActivity : ComponentActivity() {
         get() = getSharedPreferences("backup-status", MODE_PRIVATE)
 
     private val statusListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (isDestroyed) return@OnSharedPreferenceChangeListener
         if (key == "config_revision") refreshSavedSettings()
         if (key == "revision" && !refreshPending) {
             refreshPending = true

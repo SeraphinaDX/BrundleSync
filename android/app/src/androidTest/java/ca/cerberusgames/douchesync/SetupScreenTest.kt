@@ -51,11 +51,15 @@ class SetupScreenTest {
                 )
         ActivityScenario.launch<MainActivity>(Intent(context, MainActivity::class.java)).use {
             scenario ->
+            var phone = ""
             scenario.onActivity { activity ->
-                val phone = activity.findViewById<EditText>(R.id.device_id).text.toString()
+                phone = activity.findViewById<EditText>(R.id.device_id).text.toString()
                 val dialog = activity.reviewSetup(code)!!
                 assertEquals("", activity.findViewById<EditText>(R.id.folder_id).text.toString())
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            }
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            scenario.onActivity { activity ->
                 assertEquals(
                     "camera",
                     activity.findViewById<EditText>(R.id.folder_id).text.toString(),
