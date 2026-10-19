@@ -1,6 +1,6 @@
 # DoucheSync
 
-DoucheSync 0.6.0 synchronizes files in one or more folders directly between
+DoucheSync 0.7.0 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
 
 ![Screenshot](douchesync.avif)
@@ -23,7 +23,7 @@ secrets** determine which folders synchronize.
 
 - [Desktop Fyne GUI](docs/DESKTOP.md): the same TOML, identity and history as the
   CLI, with folders, peer status, transfer progress and configuration controls.
-- [Android camera backup](docs/ANDROID.md): a native folder picker and scheduled,
+- [Android camera backup](docs/ANDROID.md): a Fyne interface, native folder picker and scheduled,
   one-way photo/video backup, backed by the shared Go engine. Large files resume
   verified chunks after interruption. Originals are never deleted by the app.
 - [Maintainer architecture](docs/ARCHITECTURE.md): engine/interface boundaries,
@@ -429,7 +429,7 @@ at their next peer check (`scan_interval`, 10 seconds by default). Polling fallb
 and missed events can add delay. Large files also take time to retain as recovery
 copies.
 
-Since 0.6.0, clients remove empty parent directories after applying and
+Since 0.5.1, clients remove empty parent directories after applying and
 checkpointing file deletions. Cleanup is deduplicated and runs deepest first,
 only for ancestors of deleted tracked files. The shared root, unrelated empty
 folders and directories containing any remaining files, ignored content or

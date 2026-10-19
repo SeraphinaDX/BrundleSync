@@ -3,9 +3,5 @@
         <item name="android:colorAccent">#7454B8</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
-    <style name="PageTab" parent="android:style/Widget.Material.CompoundButton.RadioButton">
-        <item name="android:background">@drawable/page_tab_background</item>
-        <item name="android:textColor">@color/page_tab_text</item>
-        <item name="android:textStyle">bold</item>
-    </style>
+
 </resources>

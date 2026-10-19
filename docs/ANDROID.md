@@ -1,7 +1,7 @@
 # Android camera backup
 
-The Android app is a native Kotlin interface and WorkManager adapter around the
-shared Go engine. Its first release provides one-way photo/video backup from a
+The Android app uses a Fyne interface in Go, with Android adapters for QR scanning,
+folder permissions and WorkManager around the shared Go engine. Its first release provides one-way photo/video backup from a
 user-selected camera folder. It does not mirror desktop folders onto the phone.
 
 The phone initiates direct, authenticated uploads to a reachable desktop client.
@@ -37,8 +37,9 @@ Install it with Android Studio/ADB, or transfer it to your phone and open it:
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The Gradle wrapper is pinned and checksum verified. Gradle builds the Go AAR
-automatically using the tool versions pinned in `mobile/go.mod`. To build just
+The Gradle wrapper is pinned and checksum verified. Gradle builds the Go worker AAR
+and the Fyne NativeActivity libraries automatically. Fyne is pinned in `phoneui/go.mod`;
+the binding tools are pinned in `mobile/go.mod`. No separate Fyne CLI installation is needed. To build just
 the native library, run `bash scripts/build-android-core.sh`. `GO` and
 `ANDROID_NDK_HOME` can override their defaults. On Windows, use Git Bash or WSL
 with SDK/NDK tools for that environment, or build through the Linux CI job.
@@ -52,12 +53,13 @@ settings, grants and local receipt index.
 
 ## Configure the phone
 
-1. Enter the discovery URL/token and receiving folder ID/secret.
-2. Keep the generated phone device ID stable, or choose a valid ID once.
-3. Tap **Choose camera folder** and select the actual camera directory, commonly
-   `DCIM/Camera`. Android's system picker grants read access to that directory.
-4. Choose automatic backup, unmetered networking and charging requirements.
-5. Save settings, then tap **Back up now** to test the connection.
+1. In desktop **Folders → Set up Android**, show the QR for a folder that accepts backups.
+2. In Android's Fyne **Settings** tab, tap **Scan desktop QR**. Confirm the server and destination in the Fyne review dialog. Manual connection fields remain available.
+3. Tap **Choose camera folder**, then select the actual camera directory, commonly `DCIM/Camera`. Android grants read access to that directory.
+4. Choose automatic backup, network and charging requirements.
+5. Tap **Save & start backup**. The **Status** tab shows configuration readiness and the queued/running state; **Activity** keeps recent events.
+
+The package ID, private TOML, camera grant, device ID and receipt database are unchanged from 0.6.0. Upgrade using the same signing key; no configuration reset or discovery-server update is required. The UI migration does not change file transfer concurrency or the upload protocol.
 
 No all-files access or broad photo-library permission is requested. The saved
 folder grant is read-only and survives process restarts/reboots. If Android
@@ -147,3 +149,9 @@ relay, or cloud storage service.
 **Activity** stores the latest 100 events locally, including saved files and backup checks. Clearing it does not clear backup receipts or cause reuploads. **Settings** keeps manual configuration available behind a button. Scanning a QR never replaces the phone's device ID, camera folder or scheduling choices. Invalid codes leave fields unchanged.
 
 The QR contains reusable discovery and selected-folder credentials, not a one-time invitation. Show it privately; anyone who receives it has those credentials until you rotate them. QR generation is local and excludes desktop identities, filesystem paths and other folders. HTTPS discovery is required for QR setup. Existing manual settings remain supported. Camera permission is only needed to scan; file access continues to use the folder picker. No VPS update is required.
+
+## Fyne interface (0.7.0)
+
+The app's screens, forms, QR confirmation and tabs are Fyne widgets in `phoneui`. Android's brief permission/picker activities remain native. WorkManager and the existing Go upload engine stay in the app process; the Fyne renderer runs in a separate `:ui` process. This avoids loading two different Go shared-library runtimes into one process and lets backup continue when the UI closes. A private same-UID ContentProvider carries settings/status commands and change notifications. Only foreground UI observers refresh the screens; there is no idle polling timer.
+
+`make android` still builds the whole APK. `scripts/build-android-ui.sh` compiles ARM, ARM64 and x86-64 Fyne libraries with the installed NDK and copies the unmodified Activity classes from the pinned Fyne module into generated build directories. Fyne is used under its BSD license, included in CI artifacts.

@@ -20,6 +20,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    sourceSets.getByName("main") {
+        java.srcDir("../../.build/fyne-java")
+        jniLibs.srcDir("../../.build/fyne-jni")
+        assets.srcDir("../../.build/fyne-assets")
+    }
     buildTypes { release { isMinifyEnabled = false } }
     testOptions { unitTests.isIncludeAndroidResources = true }
 }
@@ -45,6 +50,17 @@ val buildGoCore by
         inputs.files("../../go.mod", "../../go.sum", "../../scripts/build-android-core.sh")
         outputs.file("libs/douchesync.aar")
     }
+val buildFyneUi by tasks.registering(Exec::class) {
+    workingDir(rootProject.projectDir.parentFile)
+    commandLine("bash", "scripts/build-android-ui.sh")
+    inputs.files(fileTree("../../phoneui") { include("*.go", "*.c", "go.mod", "go.sum"); exclude("*_test.go") })
+    inputs.file("../../scripts/build-android-ui.sh")
+    outputs.dir("../../.build/fyne-java")
+    outputs.dir("../../.build/fyne-jni")
+    outputs.dir("../../.build/fyne-assets")
+}
+tasks.named("preBuild") { dependsOn(buildFyneUi) }
+
 val goCore = files("libs/douchesync.aar").builtBy(buildGoCore)
 
 dependencies {
@@ -54,6 +70,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.11.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16.1")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }

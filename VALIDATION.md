@@ -1,3 +1,9 @@
+## 0.7.0 Fyne Android migration
+
+Local Fyne headless tests cover saved/missing-grant readiness, disabling backup for unsaved edits, QR confirmation without replacing the phone ID/source/schedule, and UTF-8/error responses from the Android bridge. The native suite checks that the original TOML survives migration and invalid saves, launches the actual Fyne NativeActivity, and retains the existing Go JNI/cancellation and authenticated descriptor-transfer tests.
+
+The Android APK and emulator checks run in the Desktop and Android workflow. A physical phone check remains necessary for QR camera scanning, document-provider variations and vendor background policies. This UI migration makes no measured claim about faster file-transfer throughput. Historical results below apply to their stated versions.
+
 ## 0.6.0 QR setup and status validation
 
 Validated application source: `b82faf6dca762b5df717f65c3e20bd0ec629f8bc`.

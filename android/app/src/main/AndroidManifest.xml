@@ -5,10 +5,17 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
     <application android:name=".DoucheSyncApplication" android:allowBackup="false" android:label="DoucheSync" android:icon="@drawable/ic_sync"
         android:theme="@style/AppTheme" android:usesCleartextTraffic="false"
         android:supportsRtl="true">
-        <activity android:name=".MainActivity" android:exported="true">
+        <receiver android:name="org.golang.app.FyneNotificationReceiver" android:exported="false" />
+        <provider android:name=".UiProvider" android:authorities="${applicationId}.ui" android:exported="false" />
+        <activity android:name=".SetupActivity" android:exported="false" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+        <activity android:name=".FyneActivity" android:exported="true" android:process=":ui" android:launchMode="singleTask"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode|density|fontScale|keyboard|navigation|layoutDirection|locale"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data android:name="android.app.lib_name" android:value="douchesyncui" />
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>
     </application>

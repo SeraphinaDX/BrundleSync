@@ -13,9 +13,10 @@ not implement their own copies of these rules.
 | `engine/VERSION` | Single version source for CLI, GUI, Go mobile library and APK |
 | `desktop` | Fyne widgets and one controller owning one engine lifetime |
 | `mobile` | Small gomobile-compatible wrapper; native descriptors and cancellation |
-| `android` | Native folder grants, media enumeration, scheduling, receipts and views |
+| `phoneui` | Fyne phone screens and a narrow platform bridge |
+| `android` | Native grants, QR scanning, scheduling, receipts and private UI service |
 
-The root, desktop and mobile have separate Go modules. The headless build stays
+The root, desktop, phoneui and mobile have separate Go modules. The headless build stays
 vendored and free of Fyne/cgo/Android SDK dependencies. Desktop depends on the
 root module through a local replacement; mobile does the same and pins its Go
 binding tools. The TOML parser version is aligned across all three builds.
@@ -92,6 +93,12 @@ the corresponding checks instead of coupling every platform's dependency graph.
 
 ## Android setup and UI state
 
-The shared engine owns the bounded, versioned `DOUCHESYNC-CAMERA-1:` setup format and validates it using the same configuration rules as TOML. The desktop QR selects one opted-in backup folder. The mobile binding returns validated connection fields; Kotlin handles review, camera scanning and document-tree permissions. Desktop IDs, local paths and unrelated secrets never enter the QR. This is a reusable credential transfer, not a pairing handshake.
+The shared engine owns the bounded, versioned `DOUCHESYNC-CAMERA-1:` setup format and validates it using the same configuration rules as TOML. The desktop QR selects one opted-in backup folder. The mobile binding returns validated connection fields; Fyne handles review; Kotlin handles camera scanning and document-tree permissions. Desktop IDs, local paths and unrelated secrets never enter the QR. This is a reusable credential transfer, not a pairing handshake.
 
 Android observes WorkManager for queued/running state instead of polling. Its bounded SQLite activity journal and preference-backed current snapshot are separate from durable upload receipts. Snapshot writes are scoped to destination credentials, device and source URI so cancelled workers from an old configuration cannot overwrite new destination status. UI refreshes are coalesced while active; there is no idle refresh timer.
+
+## Fyne Android process boundary
+
+`FyneActivity` is a NativeActivity in `:ui`. It loads only `libdouchesyncui.so`; `DoucheSyncApplication` deliberately does not load the gomobile AAR there. The default app process owns `UiProvider`, WorkManager, TOML configuration, folder grants and receipt databases and loads only the worker Go library. Do not call `Mobile.*` from the Fyne Activity or move the provider into `:ui`: the separate Go entry points must remain isolated.
+
+The bridge uses private same-UID ContentProvider calls and standard UTF-8 byte arrays over JNI. Saved settings are validated by the existing Go binding; the Fyne form never writes a second config. Content notifications are observed only while the UI is resumed and coalesced before updating Fyne widgets. `SetupActivity` holds Android ActivityResult contracts; scanned QR values remain pending until a Fyne confirmation and explicit save. There is no local TCP control server, credential-bearing deep link or foreground-only backup loop.

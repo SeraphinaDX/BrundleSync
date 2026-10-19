@@ -244,7 +244,7 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
                     android.app.PendingIntent.getActivity(
                         applicationContext,
                         0,
-                        android.content.Intent(applicationContext, MainActivity::class.java),
+                        android.content.Intent(applicationContext, FyneActivity::class.java),
                         android.app.PendingIntent.FLAG_UPDATE_CURRENT or
                             android.app.PendingIntent.FLAG_IMMUTABLE,
                     )
