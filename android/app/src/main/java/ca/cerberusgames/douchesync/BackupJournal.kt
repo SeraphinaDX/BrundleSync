@@ -28,6 +28,7 @@ class BackupJournal private constructor(context: Context) :
         }
         report(scope, "ready", "Settings saved. Ready for a backup check.", 0, 0, 0)
         event(scope, "Backup settings saved")
+        prefs.edit().putLong("config_revision", System.nanoTime()).apply()
     }
 
     @Synchronized

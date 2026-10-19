@@ -63,6 +63,7 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
         var recent = 0
         var tooLarge = 0
         val recheck = inputData.getBoolean("recheck", false)
+        scope = journal.prefs.getString("scope", "") ?: ""
         try {
             val current = Mobile.newSession(File(context.filesDir, "config.toml").path)
             session = current

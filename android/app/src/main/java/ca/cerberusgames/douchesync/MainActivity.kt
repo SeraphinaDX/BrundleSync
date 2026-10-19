@@ -18,6 +18,7 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.Lifecycle
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import ca.cerberusgames.douchesync.mobile.Mobile
@@ -63,6 +64,7 @@ class MainActivity : ComponentActivity() {
         get() = getSharedPreferences("backup-status", MODE_PRIVATE)
 
     private val statusListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "config_revision") refreshSavedSettings()
         if (key == "revision" && !refreshPending) {
             refreshPending = true
             window.decorView.postDelayed(
@@ -182,13 +184,15 @@ class MainActivity : ComponentActivity() {
         findViewById<Button>(R.id.recheck).setOnClickListener { enqueue(true) }
         findViewById<Button>(R.id.stop).setOnClickListener {
             BackupScheduler.stop(this)
+            populating = true
             findViewById<CheckBox>(R.id.automatic).isChecked = false
+            populating = false
             io.execute {
                 try {
                     if (configFile.exists()) {
                         Mobile.setAutomatic(configFile.path, false)
                         val settings = JSONObject(Mobile.settings(configFile.path))
-                        runOnUiThread {
+                        onScreen {
                             if (!isDestroyed) {
                                 savedSettings = settings
                                 renderStatus()
@@ -197,7 +201,7 @@ class MainActivity : ComponentActivity() {
                     }
                     BackupScheduler.stop(this)
                 } catch (e: Exception) {
-                    runOnUiThread {
+                    onScreen {
                         showStatus("Could not save disabled automatic backup: ${e.message}")
                     }
                 }
@@ -236,6 +240,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         statusPrefs.registerOnSharedPreferenceChangeListener(statusListener)
+        refreshSavedSettings()
         renderStatus()
     }
 
@@ -247,6 +252,29 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         io.shutdown()
         super.onDestroy()
+    }
+
+    private fun onScreen(action: () -> Unit) {
+        runOnUiThread { if (!isDestroyed) action() }
+    }
+
+    private fun refreshSavedSettings() {
+        val version = editVersion
+        io.execute {
+            try {
+                val settings =
+                    if (configFile.exists()) JSONObject(Mobile.settings(configFile.path)) else null
+                onScreen {
+                    savedSettings = settings
+                    if (!dirty && version == editVersion && settings != null) populate(settings)
+                    renderStatus()
+                }
+            } catch (_: Exception) {
+                onScreen {
+                    showStatus("Cannot read saved configuration. Review settings and save again.")
+                }
+            }
+        }
     }
 
     private fun edit(id: Int) = findViewById<EditText>(id)
@@ -308,8 +336,8 @@ class MainActivity : ComponentActivity() {
                 journal.configured(settings.getString("scope"))
                 BackupScheduler.configure(this, automatic, unmetered, charging)
                 BackupScheduler.now(this, unmetered, charging, false, replace = true)
-                runOnUiThread {
-                    if (isDestroyed) return@runOnUiThread
+                onScreen {
+                    if (isDestroyed) return@onScreen
                     savedSettings = settings
                     if (editVersion == version) dirty = false
                     renderStatus()
@@ -318,9 +346,9 @@ class MainActivity : ComponentActivity() {
                     showStatus(getString(R.string.saved))
                 }
             } catch (e: Exception) {
-                runOnUiThread { showStatus("Settings were not saved: ${e.message}") }
+                onScreen { showStatus("Settings were not saved: ${e.message}") }
             } finally {
-                runOnUiThread { findViewById<Button>(R.id.save).isEnabled = true }
+                onScreen { findViewById<Button>(R.id.save).isEnabled = true }
             }
         }
     }
@@ -338,21 +366,22 @@ class MainActivity : ComponentActivity() {
                     s.getBoolean("charging"),
                     recheck,
                 )
-                runOnUiThread {
+                onScreen {
                     if (!isDestroyed) {
                         showStatus(getString(R.string.queued))
                         showPage(0)
                     }
                 }
             } catch (e: Exception) {
-                runOnUiThread { showStatus("Cannot queue backup: ${e.message}") }
+                onScreen { showStatus("Cannot queue backup: ${e.message}") }
             }
         }
     }
 
     private fun requestNotifications() {
         if (
-            Build.VERSION.SDK_INT >= 33 &&
+            lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+                Build.VERSION.SDK_INT >= 33 &&
                 checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
                     android.content.pm.PackageManager.PERMISSION_GRANTED
         )
@@ -416,6 +445,16 @@ class MainActivity : ComponentActivity() {
             else
                 "Destination: ${settings.optString("folderID")}\nServer: ${settings.optString("discoveryURL")}\nCamera: $savedURI" +
                     if (dirty) "\nUnsaved changes — save before backing up." else ""
+        val imported =
+            edit(R.id.discovery_url).text.isNotBlank() &&
+                edit(R.id.folder_id).text.isNotBlank() &&
+                edit(R.id.discovery_token).text.isNotBlank() &&
+                edit(R.id.folder_secret).text.isNotBlank()
+        findViewById<TextView>(R.id.setup_steps).text =
+            "${if (imported) "✓" else "1."} Connection details ${if (imported) "entered" else "needed — scan a desktop QR"}\n" +
+                "${if (cameraURI != null && hasGrant(cameraURI!!)) "✓ Camera folder chosen" else "2. Choose your camera folder"}\n" +
+                if (settings != null && ready && !dirty) "✓ Settings saved"
+                else "3. Save & start backup"
         val running = (manualWork + periodicWork).any { it.state == WorkInfo.State.RUNNING }
         val queued = manualWork.any {
             it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.BLOCKED
@@ -454,7 +493,7 @@ class MainActivity : ComponentActivity() {
             ready && !dirty && !running
         io.execute {
             val history = journal.history()
-            runOnUiThread {
+            onScreen {
                 if (!isDestroyed) findViewById<TextView>(R.id.activity_log).text = history
             }
         }

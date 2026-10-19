@@ -17,14 +17,8 @@
                 <TextView android:id="@+id/last_backup" android:text="No completed backup check yet." android:textSize="16sp" android:layout_marginBottom="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 <TextView android:id="@+id/constraints" android:text="" android:textSize="16sp" android:layout_marginBottom="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 <Button android:id="@+id/backup_now" android:text="@string/backup_now" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <Button android:id="@+id/stop" android:text="@string/stop" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <Button android:id="@+id/recheck" android:text="@string/recheck" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <Button android:id="@+id/open_settings" android:text="Open settings" android:layout_width="match_parent" android:layout_height="wrap_content"/>
             </LinearLayout>
         </ScrollView>
@@ -44,36 +38,16 @@
                 <Button android:id="@+id/manual_settings" android:text="Manual connection settings" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 <LinearLayout android:id="@+id/connection_fields" android:visibility="gone" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
                     <EditText android:id="@+id/device_id" android:hint="@string/device_id" android:singleLine="true" android:inputType="textVisiblePassword" android:importantForAutofill="no" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                    
-        
                     <EditText android:id="@+id/discovery_url" android:hint="@string/discovery_url" android:singleLine="true" android:inputType="textUri" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                    
-        
                     <EditText android:id="@+id/discovery_token" android:hint="@string/discovery_token" android:singleLine="true" android:inputType="textPassword" android:importantForAutofill="no" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                    
-        
                     <EditText android:id="@+id/folder_id" android:hint="@string/folder_id" android:singleLine="true" android:inputType="textVisiblePassword" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                    
-        
                     <EditText android:id="@+id/folder_secret" android:hint="@string/folder_secret" android:singleLine="true" android:inputType="textPassword" android:importantForAutofill="no" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                    
-        
                 </LinearLayout>
                 <Button android:id="@+id/choose_folder" android:text="@string/choose_folder" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <TextView android:id="@+id/source_folder" android:text="@string/no_folder" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <CheckBox android:id="@+id/automatic" android:text="@string/automatic" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <CheckBox android:id="@+id/unmetered" android:text="@string/unmetered" android:checked="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <CheckBox android:id="@+id/charging" android:text="@string/charging" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                
-        
                 <Button android:id="@+id/save" android:text="Save &amp; start backup" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 <TextView android:id="@+id/settings_message" android:text="" android:textSize="16sp" android:layout_marginBottom="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 <TextView android:id="@+id/privacy_help" android:text="The QR contains reusable access credentials. Only scan a code from your own desktop. Your original camera files are never deleted." android:textSize="16sp" android:layout_marginBottom="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
