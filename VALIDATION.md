@@ -1,8 +1,18 @@
 ## 0.6.0 QR setup and status validation
 
-New coverage includes the shared setup codec's round trip and rejection cases, a generated desktop QR decoded by an independent reader, Android WorkManager status presentation, bounded activity history with destination scope isolation, and native UI import confirmation/identity preservation/missing camera grant tests. Native UI tests also capture screenshots for review. Physical phone camera scanning remains a manual check.
+Validated application source: `b82faf6dca762b5df717f65c3e20bd0ec629f8bc`.
 
-Run the root, desktop and mobile Go suites and Android JVM/native tests using the existing CI workflows. Historical results below apply to their stated versions.
+- 91 engine tests pass with the race detector; root vet passes.
+- Four desktop tests pass, including a generated QR decoded by an independent reader. Linux and Windows native GUI builds pass. The desktop QR dialog was rendered and visually checked.
+- The mobile adapter's race test passes, including shared UI/receipt destination scope.
+- Seven Android JVM tests pass, including WorkManager presentation and bounded journal scope isolation.
+- Four Android native tests pass on API 35 (zero skips): Go JNI/cancellation, authenticated pinned-TLS file-descriptor upload, QR review/import without replacing the phone ID or saving early, and visible missing camera permission.
+- The native transfer preserves the original photo and leaves discovery's working directory empty. The three-client process test also passes, including recursive deletion cleanup and graceful shutdown.
+
+[Desktop, APK and native checks](https://github.com/SeraphinaDX/DoucheSync/actions/runs/39185067348) · [Linux/Windows engine checks](https://github.com/SeraphinaDX/DoucheSync/actions/runs/39185071290).
+
+Physical phone camera scanning remains a manual check. The screenshot capture pipeline keeps the test APK installed until screenshots have been extracted and rejects non-PNG output. Historical results below apply to their stated versions.
+
 
 # Validation for DoucheSync 0.5.1
 

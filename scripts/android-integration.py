@@ -70,12 +70,15 @@ def main():
                     raise RuntimeError("desktop did not register with discovery")
                 time.sleep(0.2)
             command = [str(ROOT / "android/gradlew"), "--no-daemon", ":app:connectedDebugAndroidTest",
+                       "-Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true",
                        f"-Pandroid.testInstrumentationRunnerArguments.discovery=http://10.0.2.2:{server_port}",
                        f"-Pandroid.testInstrumentationRunnerArguments.token={token}",
                        f"-Pandroid.testInstrumentationRunnerArguments.secret={secret}"]
             subprocess.run(command, cwd=ROOT / "android", check=True, timeout=300)
             for name in ("android-setup.png", "android-status.png"):
-                preview = subprocess.check_output(["adb", "exec-out", "run-as", "ca.cerberusgames.douchesync", "cat", "cache/ui-previews/" + name])
+                preview = subprocess.check_output(["adb", "exec-out", "run-as", "ca.cerberusgames.douchesync", "cat", "cache/ui-previews/" + name], timeout=15)
+                if not preview.startswith(b"\x89PNG\r\n\x1a\n"):
+                    raise RuntimeError("Android screenshot was not retrieved: " + name)
                 (ROOT / ".build" / name).write_bytes(preview)
             photos = list(peer_dir.rglob("native-photo-*.jpg"))
             expected = bytes(i % 251 for i in range(2 * 1024 * 1024 + 23))
