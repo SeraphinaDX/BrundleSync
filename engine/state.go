@@ -50,6 +50,7 @@ type Folder struct {
 	state            State
 	healthy          bool
 	pendingUpdates   int
+	deleteParents    map[string]struct{} // bounded, one-shot cleanup after durable file deletions
 	dirty            bool
 	hashCache        map[string]cachedHash
 	fullScanInterval time.Duration
@@ -311,6 +312,14 @@ func openFolder(cfg FolderConfig, device string) (*Folder, error) {
 	}
 	ok = true
 	f.updateCountsLocked()
+	// Include old tombstones once at startup, repairing empty parents left by
+	// older clients or a crash. The first successful scan checks live files
+	// and commits history before cleanup; idle cycles do not revisit tombstones.
+	for p, e := range f.state.Entries {
+		if e.Deleted {
+			f.queueDeletedParentsLocked(p)
+		}
+	}
 	return f, nil
 }
 func (f *Folder) Close() {
@@ -629,6 +638,7 @@ func (f *Folder) ScanContext(ctx context.Context) (err error) {
 	if full {
 		f.nextFullScan = time.Now().Add(f.fullScanInterval)
 	}
+	f.pruneDeletedParentsLocked(ctx)
 	f.lastScan = stats
 	if stats.Hashed != 0 {
 		label := ""
