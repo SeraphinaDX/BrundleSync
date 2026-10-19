@@ -9,7 +9,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
+@Config(sdk = [35], application = android.app.Application::class)
 class BackupJournalTest {
     @Test
     fun boundedHistoryAndScopeIsolation() {

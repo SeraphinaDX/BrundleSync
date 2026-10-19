@@ -8,6 +8,9 @@ import (
 )
 
 func TestAndroidSetupRoundTrip(t *testing.T) {
+	// Android has no desktop HOME/XDG configuration directory.
+	t.Setenv("HOME", "")
+	t.Setenv("XDG_CONFIG_HOME", "")
 	cfg := Config{Client: ClientConfig{DeviceID: "private-desktop", DiscoveryURL: "https://sync.example.com", DiscoveryToken: strings.Repeat("t", 32)}, Folders: []FolderConfig{{ID: "camera", Path: "/private/path", Secret: strings.Repeat("s", 32), ReceiveBackups: true}, {ID: "other", Secret: strings.Repeat("x", 32)}}}
 	code, err := EncodeAndroidSetup(cfg, "camera")
 	if err != nil {

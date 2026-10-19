@@ -23,7 +23,7 @@ type AndroidSetup struct {
 }
 
 func (s AndroidSetup) validate() error {
-	_, err := validateConfig(Config{Client: ClientConfig{DeviceID: "phone-setup", Listen: "127.0.0.1:0", DiscoveryURL: s.DiscoveryURL, DiscoveryToken: s.DiscoveryToken}, Folders: []FolderConfig{{ID: s.FolderID, Path: ".", Secret: s.Secret}}}, "client")
+	_, err := validateConfig(Config{Client: ClientConfig{DeviceID: "phone-setup", IdentityDir: ".", Listen: "127.0.0.1:0", DiscoveryURL: s.DiscoveryURL, DiscoveryToken: s.DiscoveryToken}, Folders: []FolderConfig{{ID: s.FolderID, Path: ".", Secret: s.Secret}}}, "client")
 	if err != nil {
 		return errors.New("invalid Android setup destination or credentials")
 	}

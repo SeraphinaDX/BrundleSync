@@ -33,6 +33,9 @@ func TestNativeSettingsShareTOMLAndScopeDestinations(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer a.Cancel()
+	if settings.Scope != a.Scope() {
+		t.Fatal("UI status scope differs from upload receipts")
+	}
 	if err = SetAutomatic(filename, false); err != nil {
 		t.Fatal(err)
 	}
