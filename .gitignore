@@ -16,3 +16,8 @@ __pycache__/
 /android/app/libs/
 *.jks
 *.keystore
+
+# Android release signing keys
+*.p12
+*.pfx
+keystore.properties

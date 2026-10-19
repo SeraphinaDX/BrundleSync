@@ -1,0 +1,91 @@
+name: Signed Android release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag (must match engine/VERSION)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release-${{ inputs.tag || github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  android-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+          persist-credentials: false
+      - name: Check version and existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/douchesync-release.p12" >> "$GITHUB_ENV"
+          test "$RELEASE_TAG" = "v$(cat engine/VERSION)"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+      - name: Restore persistent signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_SIGNING_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
+        run: |
+          for name in KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD ANDROID_SIGNING_CERT_SHA256; do
+            if [ -z "${!name}" ]; then
+              echo "Missing $name. Follow docs/ANDROID-SIGNING.md before publishing."
+              exit 1
+            fi
+          done
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: stable
+          cache-dependency-path: |
+            mobile/go.sum
+            phoneui/go.sum
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK
+        env:
+          DS_ANDROID_EMULATOR: '0'
+        run: bash scripts/ci-android-sdk.sh
+      - name: Build signed release
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon :app:assembleRelease
+      - name: Verify signature and pinned certificate
+        env:
+          ANDROID_SIGNING_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/DoucheSync-$RELEASE_TAG.apk"
+          python3 scripts/verify-android-release.py "dist/DoucheSync-$RELEASE_TAG.apk" "$ANDROID_HOME/build-tools/35.0.0/apksigner"
+      - name: Publish verified APK for Obtainium
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$RELEASE_TAG" "dist/DoucheSync-$RELEASE_TAG.apk" "dist/DoucheSync-$RELEASE_TAG.apk.sha256" --repo "$GITHUB_REPOSITORY"
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/douchesync-release.p12"

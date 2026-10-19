@@ -3,6 +3,11 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Release credentials are supplied by the maintainer/CI, never a generated debug key.
+val releaseSigning = listOf(
+    "ANDROID_KEYSTORE_PATH", "ANDROID_KEYSTORE_PASSWORD", "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD"
+).associateWith { providers.environmentVariable(it).orNull }
+
 android {
     namespace = "ca.cerberusgames.douchesync"
     compileSdk = 36
@@ -25,11 +30,37 @@ android {
         jniLibs.srcDir("../../.build/fyne-jni")
         assets.srcDir("../../.build/fyne-assets")
     }
-    buildTypes { release { isMinifyEnabled = false } }
+    signingConfigs {
+        create("release") {
+            releaseSigning["ANDROID_KEYSTORE_PATH"]?.let { storeFile = file(it) }
+            storePassword = releaseSigning["ANDROID_KEYSTORE_PASSWORD"]
+            keyAlias = releaseSigning["ANDROID_KEY_ALIAS"]
+            keyPassword = releaseSigning["ANDROID_KEY_PASSWORD"]
+        }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
     testOptions { unitTests.isIncludeAndroidResources = true }
 }
 
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
+
+val checkReleaseSigning by tasks.registering {
+    doLast {
+        val missing = releaseSigning.filterValues { it.isNullOrBlank() }.keys
+        check(missing.isEmpty()) {
+            "Release signing is required. Missing: ${missing.joinToString()}. See docs/ANDROID-SIGNING.md."
+        }
+        check(file(releaseSigning.getValue("ANDROID_KEYSTORE_PATH")!!).isFile) {
+            "Release keystore does not exist. See docs/ANDROID-SIGNING.md."
+        }
+    }
+}
+tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(checkReleaseSigning) }
 
 val buildGoCore by
     tasks.registering(Exec::class) {
