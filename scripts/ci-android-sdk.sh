@@ -22,4 +22,8 @@ yes | "$SDKMANAGER" --sdk_root="$SDK" --licenses >/dev/null
 license_result=${PIPESTATUS[1]}
 set -o pipefail
 if [[ "$license_result" != 0 ]]; then exit "$license_result"; fi
-"$SDKMANAGER" --sdk_root="$SDK" 'platforms;android-36' 'build-tools;35.0.0' 'ndk;28.2.13676358' emulator 'system-images;android-35;google_apis;x86_64'
+packages=('platforms;android-36' 'build-tools;35.0.0' 'ndk;28.2.13676358')
+if [[ "${DS_ANDROID_EMULATOR:-1}" == 1 ]]; then
+  packages+=(emulator 'system-images;android-35;google_apis;x86_64')
+fi
+"$SDKMANAGER" --sdk_root="$SDK" "${packages[@]}"

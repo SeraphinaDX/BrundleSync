@@ -85,6 +85,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Test release certificate verification
+        run: python3 -m unittest discover -s scripts -p test_android_release.py
       - name: Android SDK and emulator image
         run: bash scripts/ci-android-sdk.sh
       - name: Emulator runtime libraries

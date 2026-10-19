@@ -1,6 +1,6 @@
 # DoucheSync
 
-DoucheSync 0.7.1 synchronizes files in one or more folders directly between
+DoucheSync 0.7.2 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
 
 ![Screenshot](douchesync.avif)
@@ -37,7 +37,8 @@ make gui
 Stop an existing CLI client before starting the GUI's engine. The Android app
 requires `receive_backups = true` on a receiving desktop folder; it remains a
 preview pending physical-phone field testing. CI provides desktop builds and a
-signed debug APK for testing, not a production Play Store release.
+debug APK for testing. For Obtainium updates, use the stable signed release APK;
+maintainers must first complete the [one-time signing setup](docs/ANDROID-SIGNING.md).
 
 ## What this release includes
 

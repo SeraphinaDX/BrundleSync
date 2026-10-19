@@ -44,12 +44,11 @@ the native library, run `bash scripts/build-android-core.sh`. `GO` and
 `ANDROID_NDK_HOME` can override their defaults. On Windows, use Git Bash or WSL
 with SDK/NDK tools for that environment, or build through the Linux CI job.
 
-The **Desktop and Android** workflow publishes a debug APK after its checks.
-These are test builds, not Play Store releases. CI debug signing keys can differ
-between runs; for ongoing installations, keep the same local debug keystore or
-sign a release with your own stable key. Android cannot update an installed app
-with a different signing key without uninstalling it; uninstalling clears its
-settings, grants and local receipt index.
+For Obtainium and ongoing installations, use the signed APK attached by the
+**Signed Android release** workflow. See [stable release signing and the one-time
+migration](ANDROID-SIGNING.md). The **Desktop and Android** workflow's debug APKs
+are test builds and may have different certificates between CI runs; do not use
+them as release assets.
 
 ## Configure the phone
 
