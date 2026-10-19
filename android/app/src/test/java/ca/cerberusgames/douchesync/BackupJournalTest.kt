@@ -13,8 +13,7 @@ import org.robolectric.annotation.Config
 class BackupJournalTest {
     @Test
     fun boundedHistoryAndScopeIsolation() {
-        val journal =
-            BackupJournal.get(RuntimeEnvironment.getApplication<android.app.Application>())
+        val journal = BackupJournal.get(RuntimeEnvironment.getApplication())
         journal.configured("first")
         for (i in 1..105) journal.event("first", "Event #$i.")
         assertFalse(journal.history().contains("Event #1."))
