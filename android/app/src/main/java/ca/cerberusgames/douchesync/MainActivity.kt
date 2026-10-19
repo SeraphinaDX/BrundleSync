@@ -192,6 +192,16 @@ class MainActivity : ComponentActivity() {
                     if (configFile.exists()) {
                         Mobile.setAutomatic(configFile.path, false)
                         val settings = JSONObject(Mobile.settings(configFile.path))
+                        val prefs = journal.prefs
+                        journal.report(
+                            settings.getString("scope"),
+                            "stopped",
+                            "Backups stopped. Save settings to enable automatic backup again.",
+                            prefs.getInt("saved", 0),
+                            prefs.getInt("unchanged", 0),
+                            prefs.getInt("skipped", 0),
+                        )
+                        journal.event(settings.getString("scope"), "Backups stopped")
                         onScreen {
                             if (!isDestroyed) {
                                 savedSettings = settings

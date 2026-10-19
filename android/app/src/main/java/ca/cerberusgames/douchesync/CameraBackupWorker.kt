@@ -160,6 +160,7 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
             return if (recent > 0) Result.retry() else Result.success()
         } catch (e: SecurityException) {
             phase = "attention"
+            journal.event(scope, "Camera folder permission needed; choose the folder again")
             status("Choose the camera folder again: ${e.message}")
             return Result.failure()
         } catch (e: Exception) {

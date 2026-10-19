@@ -15,6 +15,7 @@ internal fun backupState(
         phase == "retry" && (queued || periodic) -> "Waiting to retry · Android constraints apply"
         queued -> "Queued · waiting for Android, network or charging"
         automatic && periodic -> "Automatic backup enabled · waiting for the next run"
+        phase == "stopped" -> "Backups stopped"
         phase == "complete" -> "Backup check complete"
         phase == "uploading" || phase == "scanning" -> "Backup interrupted · ready to check again"
         else -> "Ready for a backup check"
