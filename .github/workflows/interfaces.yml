@@ -108,4 +108,6 @@ jobs:
             android/app/build/outputs/apk/debug/app-debug.apk
             LICENSE
             docs/ANDROID.md
+            .build/android-setup.png
+            .build/android-status.png
           if-no-files-found: error

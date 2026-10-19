@@ -134,3 +134,16 @@ Physical camera-provider behavior, SD cards, long videos, reboot scheduling and
 OEM battery policies still need field testing on real phones. This initial
 Android app is a camera-backup preview, with no general bidirectional folder UI,
 relay, or cloud storage service.
+
+## QR setup and backup status (0.6.0)
+
+1. On desktop, add a folder with **Accept Android camera backups** enabled (or set `receive_backups = true` on an existing folder). Validate and save the TOML.
+2. In **Folders → Set up Android**, select that destination and show the QR. Keep desktop sync running to receive files.
+3. On Android, open **Settings → Scan desktop QR** and grant camera access. Review the server and folder, then select **Use setup**. No configuration is saved yet.
+4. Choose your camera folder with Android's folder picker. Choose automatic backup, network and charging preferences, then **Save & start backup**. The app saves its TOML and queues an initial backup using those constraints. Periodic backup starts no earlier than 15 minutes afterward; Android determines the actual schedule.
+
+**Configured** means valid saved settings and retained camera folder permission. It does not claim an always-connected desktop. **Status** shows WorkManager's active/queued state, current file, saved/unchanged/skipped counts and last completed backup check. Missing folder permission and retry conditions remain visible. Counts are per check, not lifetime totals; progress is per file rather than an invented byte percentage. Unsaved changes disable manual backup.
+
+**Activity** stores the latest 100 events locally, including saved files and backup checks. Clearing it does not clear backup receipts or cause reuploads. **Settings** keeps manual configuration available behind a button. Scanning a QR never replaces the phone's device ID, camera folder or scheduling choices. Invalid codes leave fields unchanged.
+
+The QR contains reusable discovery and selected-folder credentials, not a one-time invitation. Show it privately; anyone who receives it has those credentials until you rotate them. QR generation is local and excludes desktop identities, filesystem paths and other folders. HTTPS discovery is required for QR setup. Existing manual settings remain supported. Camera permission is only needed to scan; file access continues to use the folder picker. No VPS update is required.

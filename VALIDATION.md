@@ -1,3 +1,9 @@
+## 0.6.0 QR setup and status validation
+
+New coverage includes the shared setup codec's round trip and rejection cases, a generated desktop QR decoded by an independent reader, Android WorkManager status presentation, bounded activity history with destination scope isolation, and native UI import confirmation/identity preservation/missing camera grant tests. Native UI tests also capture screenshots for review. Physical phone camera scanning remains a manual check.
+
+Run the root, desktop and mobile Go suites and Android JVM/native tests using the existing CI workflows. Historical results below apply to their stated versions.
+
 # Validation for DoucheSync 0.5.1
 
 Built on Linux x86-64 with Go 1.27.1 on 2026-10-18.

@@ -2,20 +2,30 @@
 package ca.cerberusgames.douchesync
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doAfterTextChanged
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import ca.cerberusgames.douchesync.mobile.Mobile
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import java.io.File
+import java.text.DateFormat
+import java.util.Date
 import java.util.concurrent.Executors
 import org.json.JSONObject
 
@@ -24,10 +34,26 @@ class MainActivity : ComponentActivity() {
     private var cameraURI: Uri? = null
     private var dirty = false
     private var editVersion = 0
+    private var populating = false
+    private var selectedPage = 2
+    private var savedSettings: JSONObject? = null
+    private var manualWork = emptyList<WorkInfo>()
+    private var periodicWork = emptyList<WorkInfo>()
+    private val journal
+        get() = BackupJournal.get(this)
+
+    private val scanner =
+        registerForActivityResult(ScanContract()) { result ->
+            result.contents?.let { reviewSetup(it) }
+        }
+    private val refresh = Runnable { if (!isDestroyed) renderStatus() }
+    private var refreshPending = false
 
     private fun edited() {
+        if (populating) return
         dirty = true
         editVersion++
+        renderStatus()
     }
 
     private val configFile
@@ -37,8 +63,16 @@ class MainActivity : ComponentActivity() {
         get() = getSharedPreferences("backup-status", MODE_PRIVATE)
 
     private val statusListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == "message")
-            runOnUiThread { showStatus(statusPrefs.getString("message", "") ?: "") }
+        if (key == "revision" && !refreshPending) {
+            refreshPending = true
+            window.decorView.postDelayed(
+                {
+                    refreshPending = false
+                    refresh.run()
+                },
+                300,
+            )
+        }
     }
     private val notifications =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
@@ -53,6 +87,7 @@ class MainActivity : ComponentActivity() {
                     cameraURI = uri
                     edited()
                     findViewById<TextView>(R.id.source_folder).text = uri.toString()
+                    renderStatus()
                 } catch (e: SecurityException) {
                     showStatus("Folder permission could not be retained: ${e.message}")
                 }
@@ -83,13 +118,57 @@ class MainActivity : ComponentActivity() {
         }
         if (configFile.exists()) {
             try {
-                populate(JSONObject(Mobile.settings(configFile.path)))
+                savedSettings = JSONObject(Mobile.settings(configFile.path))
+                populate(savedSettings!!)
+                selectedPage = 0
             } catch (e: Exception) {
                 showStatus("Cannot load configuration: ${e.message}")
             }
         } else {
             edit(R.id.device_id).setText(Mobile.newDeviceID())
         }
+        findViewById<RadioGroup>(R.id.page_navigation).setOnCheckedChangeListener { _, id ->
+            val index =
+                when (id) {
+                    R.id.nav_status -> 0
+                    R.id.nav_activity -> 1
+                    else -> 2
+                }
+            selectedPage = index
+            listOf(R.id.status_page, R.id.activity_page, R.id.settings_page).forEachIndexed {
+                i,
+                page ->
+                findViewById<View>(page).visibility = if (i == index) View.VISIBLE else View.GONE
+            }
+        }
+        findViewById<Button>(R.id.open_settings).setOnClickListener { showPage(2) }
+        findViewById<Button>(R.id.scan_setup).setOnClickListener {
+            scanner.launch(
+                ScanOptions()
+                    .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                    .setPrompt("Scan your DoucheSync desktop setup QR")
+                    .setBeepEnabled(false)
+                    .setOrientationLocked(false)
+            )
+        }
+        findViewById<Button>(R.id.manual_settings).setOnClickListener {
+            val fields = findViewById<View>(R.id.connection_fields)
+            fields.visibility = if (fields.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+        findViewById<Button>(R.id.clear_activity).setOnClickListener {
+            io.execute { journal.clearHistory() }
+        }
+        val manager = WorkManager.getInstance(this)
+        manager.getWorkInfosForUniqueWorkLiveData(BackupScheduler.MANUAL).observe(this) {
+            manualWork = it
+            renderStatus()
+        }
+        manager.getWorkInfosForUniqueWorkLiveData(BackupScheduler.PERIODIC).observe(this) {
+            periodicWork = it
+            renderStatus()
+        }
+        selectedPage = savedInstanceState?.getInt("page", selectedPage) ?: selectedPage
+        showPage(selectedPage)
         if (savedInstanceState?.containsKey("cameraURI") == true) {
             cameraURI = savedInstanceState.getString("cameraURI")?.let(Uri::parse)
             findViewById<TextView>(R.id.source_folder).text =
@@ -106,7 +185,16 @@ class MainActivity : ComponentActivity() {
             findViewById<CheckBox>(R.id.automatic).isChecked = false
             io.execute {
                 try {
-                    if (configFile.exists()) Mobile.setAutomatic(configFile.path, false)
+                    if (configFile.exists()) {
+                        Mobile.setAutomatic(configFile.path, false)
+                        val settings = JSONObject(Mobile.settings(configFile.path))
+                        runOnUiThread {
+                            if (!isDestroyed) {
+                                savedSettings = settings
+                                renderStatus()
+                            }
+                        }
+                    }
                     BackupScheduler.stop(this)
                 } catch (e: Exception) {
                     runOnUiThread {
@@ -133,6 +221,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("page", selectedPage)
         outState.putString("cameraURI", cameraURI?.toString())
         outState.putBoolean("dirty", dirty)
         super.onSaveInstanceState(outState)
@@ -141,12 +230,13 @@ class MainActivity : ComponentActivity() {
     override fun onRestoreInstanceState(state: Bundle) {
         super.onRestoreInstanceState(state)
         dirty = state.getBoolean("dirty")
+        renderStatus()
     }
 
     override fun onResume() {
         super.onResume()
         statusPrefs.registerOnSharedPreferenceChangeListener(statusListener)
-        statusPrefs.getString("message", null)?.let(::showStatus)
+        renderStatus()
     }
 
     override fun onPause() {
@@ -164,10 +254,11 @@ class MainActivity : ComponentActivity() {
     private fun checked(id: Int) = findViewById<CheckBox>(id).isChecked
 
     private fun showStatus(message: String) {
-        findViewById<TextView>(R.id.status).text = message
+        findViewById<TextView>(R.id.settings_message).text = message
     }
 
     private fun populate(s: JSONObject) {
+        populating = true
         edit(R.id.device_id).setText(s.getString("deviceID"))
         edit(R.id.discovery_url).setText(s.getString("discoveryURL"))
         edit(R.id.discovery_token).setText(s.getString("discoveryToken"))
@@ -178,10 +269,13 @@ class MainActivity : ComponentActivity() {
         findViewById<CheckBox>(R.id.automatic).isChecked = s.getBoolean("automatic")
         findViewById<CheckBox>(R.id.unmetered).isChecked = s.getBoolean("unmetered")
         findViewById<CheckBox>(R.id.charging).isChecked = s.getBoolean("charging")
+        populating = false
     }
 
     private fun save() {
         val uri = cameraURI ?: return showStatus(getString(R.string.no_folder))
+        if (!hasGrant(uri))
+            return showStatus("Choose the camera folder again to restore permission.")
         val args =
             arrayOf(
                 edit(R.id.device_id).text.toString().trim(),
@@ -209,9 +303,18 @@ class MainActivity : ComponentActivity() {
                     unmetered,
                     charging,
                 )
+                val settings = JSONObject(Mobile.settings(configFile.path))
+                BackupScheduler.stop(this)
+                journal.configured(settings.getString("scope"))
                 BackupScheduler.configure(this, automatic, unmetered, charging)
+                BackupScheduler.now(this, unmetered, charging, false, replace = true)
                 runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    savedSettings = settings
                     if (editVersion == version) dirty = false
+                    renderStatus()
+                    showPage(0)
+                    requestNotifications()
                     showStatus(getString(R.string.saved))
                 }
             } catch (e: Exception) {
@@ -225,12 +328,7 @@ class MainActivity : ComponentActivity() {
     private fun enqueue(recheck: Boolean) {
         if (dirty) return showStatus("Save your changed settings before starting a backup.")
         if (!configFile.exists()) return showStatus(getString(R.string.not_configured))
-        if (
-            Build.VERSION.SDK_INT >= 33 &&
-                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
-                    android.content.pm.PackageManager.PERMISSION_GRANTED
-        )
-            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+        requestNotifications()
         io.execute {
             try {
                 val s = JSONObject(Mobile.settings(configFile.path))
@@ -240,9 +338,124 @@ class MainActivity : ComponentActivity() {
                     s.getBoolean("charging"),
                     recheck,
                 )
-                runOnUiThread { showStatus(getString(R.string.queued)) }
+                runOnUiThread {
+                    if (!isDestroyed) {
+                        showStatus(getString(R.string.queued))
+                        showPage(0)
+                    }
+                }
             } catch (e: Exception) {
                 runOnUiThread { showStatus("Cannot queue backup: ${e.message}") }
+            }
+        }
+    }
+
+    private fun requestNotifications() {
+        if (
+            Build.VERSION.SDK_INT >= 33 &&
+                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    private fun showPage(index: Int) {
+        findViewById<RadioGroup>(R.id.page_navigation)
+            .check(listOf(R.id.nav_status, R.id.nav_activity, R.id.nav_settings)[index])
+    }
+
+    internal fun reviewSetup(code: String): AlertDialog? {
+        return try {
+            val setup = JSONObject(Mobile.decodeSetup(code))
+            AlertDialog.Builder(this)
+                .setTitle("Use this backup destination?")
+                .setMessage(
+                    "Server: ${setup.getString("discoveryURL")}\nFolder: ${setup.getString("folderID")}\n\nChoose a camera folder and save to finish setup."
+                )
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Use setup") { _, _ ->
+                    edit(R.id.discovery_url).setText(setup.getString("discoveryURL"))
+                    edit(R.id.discovery_token).setText(setup.getString("discoveryToken"))
+                    edit(R.id.folder_id).setText(setup.getString("folderID"))
+                    edit(R.id.folder_secret).setText(setup.getString("secret"))
+                    findViewById<View>(R.id.connection_fields).visibility = View.GONE
+                    showStatus(
+                        "Destination imported. Choose your camera folder, then Save & start backup."
+                    )
+                    renderStatus()
+                }
+                .show()
+        } catch (_: Exception) {
+            showStatus(
+                "This is not a valid DoucheSync camera setup QR code. Settings were not changed."
+            )
+            null
+        }
+    }
+
+    private fun hasGrant(uri: Uri) =
+        contentResolver.persistedUriPermissions.any {
+            it.uri == uri && it.isReadPermission
+        }
+
+    private fun renderStatus() {
+        if (isDestroyed) return
+        val settings = savedSettings
+        val savedURI = settings?.optString("cameraURI")?.let(Uri::parse)
+        val ready = savedURI != null && hasGrant(savedURI)
+        val headline =
+            when {
+                settings == null -> "Setup needed"
+                !ready -> "Camera folder permission needed"
+                else -> "✓ Configured"
+            }
+        findViewById<TextView>(R.id.setup_status).text = headline
+        findViewById<TextView>(R.id.setup_summary).text =
+            if (settings == null)
+                "Open Settings, scan your desktop QR, choose a camera folder, then save."
+            else
+                "Destination: ${settings.optString("folderID")}\nServer: ${settings.optString("discoveryURL")}\nCamera: $savedURI" +
+                    if (dirty) "\nUnsaved changes — save before backing up." else ""
+        val running = (manualWork + periodicWork).any { it.state == WorkInfo.State.RUNNING }
+        val queued = manualWork.any {
+            it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.BLOCKED
+        }
+        val periodic = periodicWork.any {
+            it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.BLOCKED
+        }
+        val scopeMatches =
+            settings != null && statusPrefs.getString("scope", "") == settings.optString("scope")
+        val phase = if (scopeMatches) statusPrefs.getString("phase", "") ?: "" else ""
+        findViewById<TextView>(R.id.work_status).text =
+            if (ready)
+                backupState(running, queued, periodic, settings!!.optBoolean("automatic"), phase)
+            else "Finish setup in Settings"
+        findViewById<ProgressBar>(R.id.backup_progress).visibility =
+            if (running) View.VISIBLE else View.GONE
+        findViewById<TextView>(R.id.status).text =
+            if (scopeMatches) statusPrefs.getString("message", "No backup check yet.")
+            else "No backup check yet."
+        findViewById<TextView>(R.id.backup_counts).text =
+            if (scopeMatches)
+                "${statusPrefs.getInt("saved", 0)} saved · ${statusPrefs.getInt("unchanged", 0)} already backed up · ${statusPrefs.getInt("skipped", 0)} skipped"
+            else ""
+        val completed = if (scopeMatches) statusPrefs.getLong("completed", 0) else 0
+        findViewById<TextView>(R.id.last_backup).text =
+            if (completed > 0)
+                "Last completed backup check: ${DateFormat.getDateTimeInstance().format(Date(completed))}"
+            else "No completed backup check yet."
+        findViewById<TextView>(R.id.constraints).text =
+            if (settings != null)
+                "Requires ${if (settings.optBoolean("unmetered")) "unmetered network" else "network"}" +
+                    (if (settings.optBoolean("charging")) ", charging" else "") +
+                    ", and battery not low. Android controls scheduling."
+            else ""
+        for (id in listOf(R.id.backup_now, R.id.recheck)) findViewById<Button>(id).isEnabled =
+            ready && !dirty && !running
+        io.execute {
+            val history = journal.history()
+            runOnUiThread {
+                if (!isDestroyed) findViewById<TextView>(R.id.activity_log).text = history
             }
         }
     }

@@ -112,3 +112,9 @@ Backups appear beneath `Camera/<phone-device-id>/`. Filenames have a readable
 stem and full content-hash suffix, preserving different photos with identical
 camera filenames. Completed files can synchronize to your other desktop peers
 normally. Partial uploads stay private and never enter folder manifests.
+
+## Android QR setup
+
+Open **Folders → Set up Android**. Select a saved folder with `receive_backups = true` (the Add folder checkbox is **Accept Android camera backups**). Save pending TOML edits first. Scan the displayed QR from Android Settings, confirm the destination, choose a camera folder, and save. Keep desktop sync running to receive files.
+
+The QR is generated locally and contains reusable discovery credentials and only the selected folder's secret. It excludes local paths, desktop identity and other folders. Do not share screenshots. QR setup requires HTTPS discovery; manual configuration is still available.

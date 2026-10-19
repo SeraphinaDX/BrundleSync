@@ -74,6 +74,9 @@ def main():
                        f"-Pandroid.testInstrumentationRunnerArguments.token={token}",
                        f"-Pandroid.testInstrumentationRunnerArguments.secret={secret}"]
             subprocess.run(command, cwd=ROOT / "android", check=True, timeout=300)
+            for name in ("android-setup.png", "android-status.png"):
+                preview = subprocess.check_output(["adb", "exec-out", "run-as", "ca.cerberusgames.douchesync", "cat", "cache/ui-previews/" + name])
+                (ROOT / ".build" / name).write_bytes(preview)
             photos = list(peer_dir.rglob("native-photo-*.jpg"))
             expected = bytes(i % 251 for i in range(2 * 1024 * 1024 + 23))
             if len(photos) != 1 or photos[0].read_bytes() != expected:

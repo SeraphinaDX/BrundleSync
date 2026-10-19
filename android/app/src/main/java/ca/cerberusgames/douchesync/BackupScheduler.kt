@@ -6,8 +6,8 @@ import androidx.work.*
 import java.util.concurrent.TimeUnit
 
 object BackupScheduler {
-    private const val PERIODIC = "camera-periodic"
-    private const val MANUAL = "camera-now"
+    const val PERIODIC = "camera-periodic"
+    const val MANUAL = "camera-now"
 
     private fun constraints(unmetered: Boolean, charging: Boolean) =
         Constraints.Builder()
@@ -24,6 +24,7 @@ object BackupScheduler {
         }
         val request =
             PeriodicWorkRequestBuilder<CameraBackupWorker>(15, TimeUnit.MINUTES)
+                .setInitialDelay(15, TimeUnit.MINUTES)
                 .setConstraints(constraints(unmetered, charging))
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
@@ -34,14 +35,25 @@ object BackupScheduler {
         )
     }
 
-    fun now(context: Context, unmetered: Boolean, charging: Boolean, recheck: Boolean) {
+    fun now(
+        context: Context,
+        unmetered: Boolean,
+        charging: Boolean,
+        recheck: Boolean,
+        replace: Boolean = false,
+    ) {
         val request =
             OneTimeWorkRequestBuilder<CameraBackupWorker>()
                 .setInputData(workDataOf("recheck" to recheck))
                 .setConstraints(constraints(unmetered, charging))
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
-        WorkManager.getInstance(context).enqueueUniqueWork(MANUAL, ExistingWorkPolicy.KEEP, request)
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork(
+                MANUAL,
+                if (replace) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP,
+                request,
+            )
     }
 
     // Stop disables automatic scheduling as well as cancelling active work.

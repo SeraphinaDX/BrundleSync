@@ -1,6 +1,6 @@
 # DoucheSync
 
-DoucheSync 0.5.1 synchronizes files in one or more folders directly between
+DoucheSync 0.6.0 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
 
 ![Screenshot](douchesync.avif)
@@ -429,7 +429,7 @@ at their next peer check (`scan_interval`, 10 seconds by default). Polling fallb
 and missed events can add delay. Large files also take time to retain as recovery
 copies.
 
-Since 0.5.1, clients remove empty parent directories after applying and
+Since 0.6.0, clients remove empty parent directories after applying and
 checkpointing file deletions. Cleanup is deduplicated and runs deepest first,
 only for ancestors of deleted tracked files. The shared root, unrelated empty
 folders and directories containing any remaining files, ignored content or
@@ -634,3 +634,9 @@ save. Use ordinary backups alongside synchronization.
 GPL-3.0-or-later. See `LICENSE`. Vendored dependencies retain their own licenses:
 the TOML parser and fsnotify use MIT, and golang.org/x/sys uses BSD-3-Clause.
 Their license files are included alongside their vendored sources.
+
+### Android setup with a desktop QR
+
+In the desktop GUI, open **Folders → Set up Android** and choose a saved folder that accepts camera backups. On Android, open **Settings → Scan desktop QR**, review the destination, choose a camera folder, then **Save & start backup**.
+
+Android now has separate **Status**, **Activity** and **Settings** screens. Status distinguishes saved configuration, missing camera permission, queued work and active backup. Activity keeps the latest 100 events locally. See [Android setup](docs/ANDROID.md).
