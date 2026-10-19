@@ -1,6 +1,6 @@
 # DoucheSync
 
-DoucheSync 0.7.0 synchronizes files in one or more folders directly between
+DoucheSync 0.7.1 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
 
 ![Screenshot](douchesync.avif)

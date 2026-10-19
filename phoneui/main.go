@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"image/color"
@@ -84,6 +85,18 @@ func wrapped(s string) *widget.Label {
 	l.Wrapping = fyne.TextWrapWord
 	return l
 }
+
+// Fyne overlays its vertical scroll bar instead of reserving content width.
+// Keep controls and text inset from that track, including the expanded thumb.
+func phoneContent(content fyne.CanvasObject) *fyne.Container {
+	padding := theme.Padding() * 2
+	return container.New(layout.NewCustomPaddedLayout(padding, padding, padding, padding+theme.ScrollBarSize()), content)
+}
+
+func phoneScroll(content fyne.CanvasObject) *container.Scroll {
+	return container.NewVScroll(phoneContent(content))
+}
+
 func newPhoneUI(a fyne.App, b backend) *phoneUI {
 	u := &phoneUI{window: a.NewWindow("DoucheSync"), backend: b}
 	u.headline = widget.NewLabelWithStyle("Setup needed", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
@@ -124,21 +137,21 @@ func newPhoneUI(a fyne.App, b backend) *phoneUI {
 			}
 		}, u.window)
 	})
-	status := container.NewVScroll(container.NewVBox(
+	status := phoneScroll(container.NewVBox(
 		widget.NewCard("Camera backup", "Your photos, directly to your desktop", container.NewVBox(u.headline, u.state, u.progress, u.message)),
 		widget.NewCard("Latest check", "", container.NewVBox(u.counts, u.completed)), u.edits, u.backup,
-		container.NewGridWithColumns(2, widget.NewButtonWithIcon("Stop backups", theme.MediaStopIcon(), func() { u.action("stop") }), widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() { u.tabs.SelectIndex(2) })), u.recheck, widget.NewCard("Destination", "", u.summary)))
-	activity := container.NewBorder(container.NewVBox(wrapped("Recent activity · latest 100 events"), widget.NewButtonWithIcon("Clear activity", theme.DeleteIcon(), func() {
+		container.NewAdaptiveGrid(2, widget.NewButtonWithIcon("Stop backups", theme.MediaStopIcon(), func() { u.action("stop") }), widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() { u.tabs.SelectIndex(2) })), u.recheck, widget.NewCard("Destination", "", u.summary)))
+	activity := container.NewBorder(phoneContent(container.NewVBox(wrapped("Recent activity · latest 100 events"), widget.NewButtonWithIcon("Clear activity", theme.DeleteIcon(), func() {
 		dialog.ShowConfirm("Clear activity?", "Backup receipts will be kept; your files will not be uploaded again.", func(ok bool) {
 			if ok {
 				u.action("clear")
 			}
 		}, u.window)
-	})), nil, nil, nil, container.NewVScroll(u.history))
+	}))), nil, nil, nil, phoneScroll(u.history))
 	scan := widget.NewButtonWithIcon("Scan desktop QR", theme.MediaPhotoIcon(), func() { u.launch("scan") })
 	scan.Importance = widget.HighImportance
 	form := widget.NewForm(widget.NewFormItem("Phone ID", u.device), widget.NewFormItem("Discovery server", u.server), widget.NewFormItem("Discovery token", u.token), widget.NewFormItem("Folder ID", u.folder), widget.NewFormItem("Folder secret", u.secret))
-	setup := container.NewVScroll(container.NewVBox(widget.NewCard("Set up camera backup", "Three steps, then you're ready", u.checklist), scan, widget.NewAccordion(widget.NewAccordionItem("Manual connection settings", form)), widget.NewButtonWithIcon("Choose camera folder", theme.FolderOpenIcon(), func() { u.launch("folder") }), u.source, widget.NewCard("When to back up", "Android schedules background work.", container.NewVBox(u.automatic, u.unmetered, u.charging)), u.save, wrapped("Only scan your own desktop's QR. It contains reusable access credentials. Original camera files stay on your phone.")))
+	setup := phoneScroll(container.NewVBox(widget.NewCard("Set up camera backup", "Three steps, then you're ready", u.checklist), scan, widget.NewAccordion(widget.NewAccordionItem("Manual connection settings", form)), widget.NewButtonWithIcon("Choose camera folder", theme.FolderOpenIcon(), func() { u.launch("folder") }), u.source, widget.NewCard("When to back up", "Android schedules background work.", container.NewVBox(u.automatic, u.unmetered, u.charging)), u.save, wrapped("Only scan your own desktop's QR. It contains reusable access credentials. Original camera files stay on your phone.")))
 	u.tabs = container.NewAppTabs(container.NewTabItemWithIcon("Status", theme.HomeIcon(), status), container.NewTabItemWithIcon("Activity", theme.HistoryIcon(), activity), container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), setup))
 	u.tabs.SetTabLocation(container.TabLocationBottom)
 	u.tabs.SelectIndex(2)
