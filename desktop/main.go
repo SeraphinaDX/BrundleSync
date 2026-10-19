@@ -119,7 +119,7 @@ func newUI(a fyne.App, configPath string) *desktopUI {
 	})
 	tabs := container.NewAppTabs(
 		container.NewTabItemWithIcon("Overview", theme.HomeIcon(), container.NewVScroll(container.NewVBox(widget.NewLabelWithStyle("Direct peer-to-peer sync", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), u.device, u.state, u.problem, widget.NewSeparator(), widget.NewLabel("Transfers"), u.transfers))),
-		container.NewTabItemWithIcon("Folders", theme.FolderIcon(), container.NewBorder(nil, u.add, nil, nil, container.NewVScroll(u.folders))),
+		container.NewTabItemWithIcon("Folders", theme.FolderIcon(), container.NewBorder(nil, container.NewHBox(u.add, widget.NewButtonWithIcon("Set up Android", theme.ComputerIcon(), u.showAndroidSetup)), nil, nil, container.NewVScroll(u.folders))),
 		container.NewTabItemWithIcon("Peers", theme.ComputerIcon(), container.NewVScroll(u.peers)),
 		container.NewTabItemWithIcon("Activity", theme.HistoryIcon(), container.NewVScroll(u.activity)),
 		container.NewTabItemWithIcon("Configuration", theme.SettingsIcon(), container.NewBorder(container.NewVBox(widget.NewLabel(u.configPath), widget.NewLabel("Uses the CLI's TOML. Stop sync before saving changes.")), container.NewHBox(u.save, open), nil, nil, u.editor)),

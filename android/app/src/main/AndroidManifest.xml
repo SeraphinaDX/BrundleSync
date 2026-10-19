@@ -3,6 +3,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application android:name=".DoucheSyncApplication" android:allowBackup="false" android:label="DoucheSync" android:icon="@drawable/ic_sync"
         android:theme="@style/AppTheme" android:usesCleartextTraffic="false"
         android:supportsRtl="true">

@@ -20,6 +20,15 @@ import java.io.RandomAccessFile
 import java.nio.channels.OverlappingFileLockException
 
 class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
+    private var scope = ""
+    private var saved = 0
+    private var unchangedCount = 0
+    private var skipped = 0
+    private var phase = "scanning"
+    private var lastNotification = 0L
+    private val journal
+        get() = BackupJournal.get(applicationContext)
+
     @Volatile private var session: Session? = null
     @Volatile private var activeInput: InputStream? = null
 
@@ -54,9 +63,14 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
         var recent = 0
         var tooLarge = 0
         val recheck = inputData.getBoolean("recheck", false)
+        scope = journal.prefs.getString("scope", "") ?: ""
         try {
             val current = Mobile.newSession(File(context.filesDir, "config.toml").path)
             session = current
+            scope = current.scope()
+            journal.begin(scope)
+            status("Checking camera folder")
+            journal.event(scope, "Backup check started")
             if (isStopped) {
                 current.cancel()
                 return Result.retry()
@@ -80,6 +94,7 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
                     // Keep jobs short and interruptible; WorkManager can retry
                     // after the next constraint window using durable receipts.
                     if (SystemClock.elapsedRealtime() - started >= 8 * 60_000L) {
+                        phase = "retry"
                         status(
                             "Backup will continue: $uploaded saved, $unchanged already backed up"
                         )
@@ -87,18 +102,22 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
                     }
                     if (index.contains(current.scope(), item, id.toString(), recheck)) {
                         unchanged++
+                        unchangedCount = unchanged
                         continue
                     }
                     if (item.size > current.maxFileSize()) {
                         tooLarge++
+                        skipped = tooLarge + recent
                         continue
                     }
                     if (
                         item.modified > 0 && System.currentTimeMillis() - item.modified in 0..30_000
                     ) {
                         recent++
+                        skipped = tooLarge + recent
                         continue
                     }
+                    phase = "uploading"
                     status("Backing up ${item.name} · $uploaded saved")
                     val receipt =
                         context.contentResolver.openFileDescriptor(item.uri, "r")?.use { descriptor
@@ -123,19 +142,33 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
                         error("Camera file changed during backup: ${item.name}")
                     index.replace(current.scope(), item, receipt, id.toString())
                     uploaded++
+                    saved = uploaded
+                    journal.event(scope, "Saved ${item.name}")
+                    status("Saved ${item.name}")
                 }
             }
             if (isStopped) return Result.retry()
+            phase = if (recent > 0) "retry" else if (tooLarge > 0) "attention" else "complete"
             status(
-                "Backup complete: $uploaded saved, $unchanged already backed up; $tooLarge exceed the file-size limit" +
+                "Backup check complete: $uploaded saved, $unchanged already backed up; $tooLarge exceed the file-size limit" +
                     if (recent > 0) "; $recent recent files pending" else ""
+            )
+            journal.event(
+                scope,
+                "Backup check finished: $uploaded saved, $unchanged unchanged, ${tooLarge + recent} skipped",
             )
             return if (recent > 0) Result.retry() else Result.success()
         } catch (e: SecurityException) {
+            phase = "attention"
+            journal.event(scope, "Camera folder permission needed; choose the folder again")
             status("Choose the camera folder again: ${e.message}")
             return Result.failure()
         } catch (e: Exception) {
-            if (!isStopped) status("Backup will retry: ${e.message}")
+            phase = "retry"
+            if (!isStopped) {
+                status("Backup will retry: ${e.message}")
+                journal.event(scope, "Backup interrupted; waiting to retry")
+            }
             return Result.retry()
         } finally {
             session?.cancel()
@@ -188,11 +221,11 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
     }
 
     private fun status(message: String) {
-        applicationContext
-            .getSharedPreferences("backup-status", Context.MODE_PRIVATE)
-            .edit()
-            .putString("message", message)
-            .apply()
+        if (isStopped || !journal.accepts(scope)) return
+        journal.report(scope, phase, message, saved, unchangedCount, skipped)
+        val now = SystemClock.elapsedRealtime()
+        if (phase in listOf("scanning", "uploading") && now - lastNotification < 1000) return
+        lastNotification = now
         val manager = applicationContext.getSystemService(NotificationManager::class.java)
         if (Build.VERSION.SDK_INT >= 26)
             manager.createNotificationChannel(
@@ -207,6 +240,15 @@ class CameraBackupWorker(context: Context, params: WorkerParameters) : Worker(co
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(applicationContext.getString(R.string.backup_notification))
                 .setContentText(message)
+                .setContentIntent(
+                    android.app.PendingIntent.getActivity(
+                        applicationContext,
+                        0,
+                        android.content.Intent(applicationContext, MainActivity::class.java),
+                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or
+                            android.app.PendingIntent.FLAG_IMMUTABLE,
+                    )
+                )
                 .setOnlyAlertOnce(true)
                 .setAutoCancel(true)
                 .build()

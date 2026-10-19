@@ -18,10 +18,21 @@ import (
 	"douchesync/engine"
 )
 
+// DecodeSetup validates the versioned QR payload in the shared engine.
+func DecodeSetup(code string) (string, error) {
+	s, err := engine.DecodeAndroidSetup(code)
+	if err != nil {
+		return "", err
+	}
+	data, err := json.Marshal(s)
+	return string(data), err
+}
+
 func Version() string     { return engine.Version() }
 func NewDeviceID() string { return "phone-" + engine.GenerateSecret()[:12] }
 
 type settings struct {
+	Scope          string `json:"scope"`
 	DeviceID       string `json:"deviceID"`
 	DiscoveryURL   string `json:"discoveryURL"`
 	DiscoveryToken string `json:"discoveryToken"`
@@ -42,7 +53,7 @@ func Settings(configPath string) (string, error) {
 		return "", errors.New("Android camera backup requires exactly one destination folder")
 	}
 	f := cfg.Folders[0]
-	data, err := json.Marshal(settings{cfg.Client.DeviceID, cfg.Client.DiscoveryURL, cfg.Client.DiscoveryToken, f.ID, f.Secret, cfg.Android.CameraURI, cfg.Android.Automatic, cfg.Android.Unmetered, cfg.Android.Charging})
+	data, err := json.Marshal(settings{configScope(cfg), cfg.Client.DeviceID, cfg.Client.DiscoveryURL, cfg.Client.DiscoveryToken, f.ID, f.Secret, cfg.Android.CameraURI, cfg.Android.Automatic, cfg.Android.Unmetered, cfg.Android.Charging})
 	return string(data), err
 }
 
@@ -86,10 +97,8 @@ func NewSession(configPath string) (*Session, error) {
 	}
 	// Include destination credentials, device identity and source selection in
 	// the ledger scope. Changing any of them must not reuse an old success.
-	key, _ := json.Marshal([]string{cfg.Client.DeviceID, cfg.Client.DiscoveryURL, cfg.Client.DiscoveryToken, f.ID, f.Secret, cfg.Android.CameraURI})
-	hash := sha256.Sum256(key)
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Minute)
-	return &Session{sender: sender, ctx: ctx, cancel: cancel, scope: hex.EncodeToString(hash[:]), cameraURI: cfg.Android.CameraURI, maxFileSize: f.MaxFileSize}, nil
+	return &Session{sender: sender, ctx: ctx, cancel: cancel, scope: configScope(cfg), cameraURI: cfg.Android.CameraURI, maxFileSize: f.MaxFileSize}, nil
 }
 func (s *Session) MaxFileSize() int64 { return s.maxFileSize }
 func (s *Session) Scope() string      { return s.scope }
@@ -141,4 +150,11 @@ func (s *Session) UploadDescriptor(descriptor int64, displayName string, modifie
 	}
 	data, err := json.Marshal(receipt)
 	return string(data), err
+}
+
+func configScope(cfg engine.Config) string {
+	f := cfg.Folders[0]
+	key, _ := json.Marshal([]string{cfg.Client.DeviceID, cfg.Client.DiscoveryURL, cfg.Client.DiscoveryToken, f.ID, f.Secret, cfg.Android.CameraURI})
+	hash := sha256.Sum256(key)
+	return hex.EncodeToString(hash[:])
 }
