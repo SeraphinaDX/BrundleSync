@@ -1,10 +1,10 @@
 [Unit]
-Description=DoucheSync peer folder client
+Description=BrundleSync peer folder client
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/DoucheSync client
+ExecStart=%h/.local/bin/BrundleSync client
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

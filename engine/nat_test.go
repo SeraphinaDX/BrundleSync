@@ -266,7 +266,7 @@ func TestUPnPDiscoveryMappingAndCleanup(t *testing.T) {
 	t.Cleanup(func() { udp.Close(); <-done })
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	m, err := discoverUPnP(ctx, net.ParseIP("127.0.0.1"), net.ParseIP("127.0.0.1"), 7444, "DoucheSync-test", []*net.UDPAddr{udp.LocalAddr().(*net.UDPAddr)})
+	m, err := discoverUPnP(ctx, net.ParseIP("127.0.0.1"), net.ParseIP("127.0.0.1"), 7444, "BrundleSync-test", []*net.UDPAddr{udp.LocalAddr().(*net.UDPAddr)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,7 +289,7 @@ func TestUPnPDiscoveryMappingAndCleanup(t *testing.T) {
 func TestUPnPPermanentLeaseAndOwnership(t *testing.T) {
 	f := fakeUPnP(t, true)
 	f.ports["7444"] = map[string]string{"NewInternalClient": "127.0.0.2", "NewInternalPort": "7444", "NewPortMappingDescription": "another app"}
-	mappings, err := loadUPnP(context.Background(), routerHTTP(net.ParseIP("127.0.0.1")), f.server.URL+"/desc.xml", net.ParseIP("127.0.0.1"), net.ParseIP("127.0.0.1"), 7444, "DoucheSync-owned")
+	mappings, err := loadUPnP(context.Background(), routerHTTP(net.ParseIP("127.0.0.1")), f.server.URL+"/desc.xml", net.ParseIP("127.0.0.1"), net.ParseIP("127.0.0.1"), 7444, "BrundleSync-owned")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,8 +1,8 @@
-module douchesync/mobile
+module brundlesync/mobile
 
 go 1.26.0
 
-require douchesync v0.0.0
+require brundlesync v0.0.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
@@ -14,7 +14,7 @@ require (
 	golang.org/x/tools v0.52.0 // indirect
 )
 
-replace douchesync => ..
+replace brundlesync => ..
 
 tool (
 	golang.org/x/mobile/cmd/gobind

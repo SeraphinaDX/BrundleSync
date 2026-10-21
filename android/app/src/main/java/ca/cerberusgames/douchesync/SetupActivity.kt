@@ -34,7 +34,7 @@ class SetupActivity : ComponentActivity() {
                         JSONObject()
                             .put(
                                 "notice",
-                                "This is not a valid DoucheSync camera setup QR. Settings were not changed.",
+                                "This is not a valid BrundleSync camera setup QR. Settings were not changed.",
                             )
                     )
                 }
@@ -72,7 +72,7 @@ class SetupActivity : ComponentActivity() {
                 scanner.launch(
                     ScanOptions()
                         .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                        .setPrompt("Scan your DoucheSync desktop setup QR")
+                        .setPrompt("Scan your BrundleSync desktop setup QR")
                         .setBeepEnabled(false)
                         .setOrientationLocked(false)
                 )

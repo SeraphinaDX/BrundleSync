@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=DoucheSync
+Name=BrundleSync
 Comment=Direct peer-to-peer folder sync
-Exec=DoucheSyncGUI -start
+Exec=BrundleSyncGUI -start
 Icon=ca.cerberusgames.douchesync
 Terminal=false
 Categories=Network;FileTransfer;

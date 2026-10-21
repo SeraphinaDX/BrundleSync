@@ -48,7 +48,7 @@ def main():
         def launch(mode, config, cwd):
             handle = (work / f"{mode}.log").open("wb")
             handles.append(handle)
-            processes.append(subprocess.Popen([str(ROOT / "DoucheSync"), mode, "-config=" + str(config)], cwd=cwd, stdout=handle, stderr=handle))
+            processes.append(subprocess.Popen([str(ROOT / "BrundleSync"), mode, "-config=" + str(config)], cwd=cwd, stdout=handle, stderr=handle))
 
         try:
             launch("server", server, server_dir)

@@ -47,24 +47,24 @@ jobs:
         working-directory: desktop
         env:
           CGO_ENABLED: '1'
-        run: go build -trimpath -ldflags="${{ runner.os == 'Windows' && '-H=windowsgui' || '' }}" -o ../DoucheSyncGUI${{ runner.os == 'Windows' && '.exe' || '' }} .
+        run: go build -trimpath -ldflags="${{ runner.os == 'Windows' && '-H=windowsgui' || '' }}" -o ../BrundleSyncGUI${{ runner.os == 'Windows' && '.exe' || '' }} .
       - name: Native Linux window startup and graceful shutdown
         if: runner.os == 'Linux'
         env:
           FYNE_PLATFORM: x11
         run: |
           set +e
-          timeout 5s xvfb-run -a ./DoucheSyncGUI
+          timeout 5s xvfb-run -a ./BrundleSyncGUI
           result=$?
           if [ "$result" != 124 ]; then exit 1; fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: DoucheSyncGUI-${{ runner.os }}
+          name: BrundleSyncGUI-${{ runner.os }}
           path: |
-            DoucheSyncGUI*
+            BrundleSyncGUI*
             LICENSE
             docs/DESKTOP.md
-            desktop/assets/douchesync.svg
+            desktop/assets/brundlesync.svg
           if-no-files-found: error
 
   android:
@@ -103,14 +103,14 @@ jobs:
       - name: Build native peer fixture
         env:
           CGO_ENABLED: '0'
-        run: go build -trimpath -o DoucheSync .
+        run: go build -trimpath -o BrundleSync .
       - name: Enable KVM
         run: sudo chmod a+rw /dev/kvm
       - name: Android native JNI and pinned peer transfer
         run: bash scripts/android-emulator-test.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: DoucheSync-Android-debug
+          name: BrundleSync-Android-debug
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             LICENSE

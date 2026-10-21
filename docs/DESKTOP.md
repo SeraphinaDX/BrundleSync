@@ -24,7 +24,7 @@ From the checkout root:
 
 ```sh
 make gui
-./DoucheSyncGUI
+./BrundleSyncGUI
 ```
 
 An alternative Go/cgo wrapper can be selected with `make gui GUI_GO=zgo`.
@@ -37,9 +37,9 @@ use PowerShell:
 ```powershell
 cd desktop
 $env:CGO_ENABLED = "1"
-go build -trimpath -ldflags="-H=windowsgui" -o ..\DoucheSyncGUI.exe .
+go build -trimpath -ldflags="-H=windowsgui" -o ..\BrundleSyncGUI.exe .
 cd ..
-.\DoucheSyncGUI.exe
+.\BrundleSyncGUI.exe
 ```
 
 macOS requires Xcode command-line tools. The UI uses Fyne's platform support;
@@ -58,7 +58,7 @@ The default path is the CLI's normal configuration path:
 To select another file or start syncing immediately:
 
 ```sh
-./DoucheSyncGUI -config=/absolute/path/client.toml -start
+./BrundleSyncGUI -config=/absolute/path/client.toml -start
 ```
 
 Stop the CLI client/service before starting sync in the GUI. One engine owns

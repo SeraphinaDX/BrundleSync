@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DoucheSync</string>
+    <string name="app_name">BrundleSync</string>
     <string name="title">Camera backup</string>
     <string name="intro">Back up photos and videos directly to your computers. Removing a photo from this phone keeps its desktop backup.</string>
     <string name="device_id">Phone device ID</string>
@@ -17,7 +17,7 @@
     <string name="recheck">Recheck previously backed-up files</string>
     <string name="desktop_help">On your computer, enable receive_backups = true for this shared folder. At least one matching desktop peer must be reachable. Back up now respects network and charging requirements.</string>
     <string name="backup_channel">Camera backup</string>
-    <string name="backup_notification">DoucheSync camera backup</string>
+    <string name="backup_notification">BrundleSync camera backup</string>
     <string name="not_configured">Choose a folder and save your connection settings.</string>
     <string name="no_folder">No camera folder selected</string>
     <string name="saved">Settings saved.</string>

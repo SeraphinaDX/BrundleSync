@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 DoucheSync contributors
 
-// DoucheSync is a peer-to-peer folder synchronizer. The discovery process never
+// BrundleSync is a peer-to-peer folder synchronizer. The discovery process never
 // receives file manifests or contents; those endpoints exist only on clients.
 package engine
 
@@ -147,7 +147,7 @@ func validateConfig(c Config, mode string) (Config, error) {
 			c.Server.Listen = "127.0.0.1:7443"
 		}
 		if len(c.Server.Token) < 32 {
-			return c, errors.New("server.token must contain at least 32 characters; run douchesync keygen")
+			return c, errors.New("server.token must contain at least 32 characters; run BrundleSync keygen")
 		}
 		if (c.Server.TLSCert == "") != (c.Server.TLSKey == "") {
 			return c, errors.New("provide both tls_cert and tls_key")

@@ -1,12 +1,12 @@
-/DoucheSync
-/DoucheSync.exe
+/BrundleSync
+/BrundleSync.exe
 /dist/
 *.log
 /bin/
 *.zip
 __pycache__/
-/DoucheSyncGUI
-/DoucheSyncGUI.exe
+/BrundleSyncGUI
+/BrundleSyncGUI.exe
 /.build/
 /android/.gradle/
 /android/.kotlin/

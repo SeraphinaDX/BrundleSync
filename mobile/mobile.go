@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"douchesync/engine"
+	"brundlesync/engine"
 )
 
 // DecodeSetup validates the versioned QR payload in the shared engine.

@@ -1,4 +1,4 @@
-module douchesync/phoneui
+module brundlesync/phoneui
 
 go 1.26.0
 

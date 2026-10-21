@@ -2,7 +2,7 @@
 package main
 
 import (
-	"douchesync/engine"
+	"brundlesync/engine"
 	"os"
 	"path/filepath"
 	"testing"

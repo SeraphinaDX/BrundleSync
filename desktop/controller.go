@@ -7,7 +7,7 @@ import (
 	"errors"
 	"sync"
 
-	"douchesync/engine"
+	"brundlesync/engine"
 )
 
 // The controller owns exactly one engine lifetime. Stopping waits for all IO
