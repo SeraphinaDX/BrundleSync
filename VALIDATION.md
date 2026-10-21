@@ -20,7 +20,7 @@ Validated application source: `b82faf6dca762b5df717f65c3e20bd0ec629f8bc`.
 Physical phone camera scanning remains a manual check. The screenshot capture pipeline keeps the test APK installed until screenshots have been extracted and rejects non-PNG output. Historical results below apply to their stated versions.
 
 
-# Validation for DoucheSync 0.5.1
+# Validation for BrundleSync 0.5.1
 
 Built on Linux x86-64 with Go 1.27.1 on 2026-10-18.
 

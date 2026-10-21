@@ -24,7 +24,7 @@ func TestDesktopUsesExistingTOMLAndWaitsForExplicitStart(t *testing.T) {
 		t.Fatal("GUI started another engine without an explicit request")
 	}
 	u.window.Show()
-	if filename := os.Getenv("DOUCHESYNC_SCREENSHOT"); filename != "" {
+	if filename := os.Getenv("BRUNDLESYNC_SCREENSHOT"); filename != "" {
 		f, err := os.Create(filename)
 		if err != nil {
 			t.Fatal(err)

@@ -2,7 +2,7 @@
 package main
 
 import (
-	"douchesync/engine"
+	"brundlesync/engine"
 	"errors"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"

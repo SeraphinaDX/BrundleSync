@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise real DoucheSync processes. Uses only Python's standard library."""
+"""Exercise real BrundleSync processes. Uses only Python's standard library."""
 import json
 import hashlib
 import pathlib
@@ -40,7 +40,7 @@ def content(path):
 
 
 def main():
-    binary = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "./DoucheSync").resolve()
+    binary = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "./BrundleSync").resolve()
     processes, handles, logs = [], [], []
     with tempfile.TemporaryDirectory(prefix="douchesync-smoke-") as temporary:
         work = pathlib.Path(temporary)

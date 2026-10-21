@@ -6,10 +6,14 @@ runner. Attaching those APKs to releases caused Obtainium certificate mismatches
 
 Starting with 0.7.2, use the **Signed Android release** workflow for release APKs.
 It uses one persistent key, verifies the APK and a separately pinned certificate
-fingerprint, then attaches `DoucheSync-v<VERSION>.apk` and its SHA-256 checksum to
+fingerprint, then attaches `BrundleSync-v<VERSION>.apk` and its SHA-256 checksum to
 the GitHub release. Missing credentials or a certificate mismatch stop publication.
 The Desktop and Android workflow's debug APK remains for testing only: never
 attach it to a release used by Obtainium.
+
+BrundleSync uses the same signing key as earlier releases. If signing is already
+configured, skip key generation and keep the existing secrets, alias and pinned
+fingerprint. See [upgrading after the rename](RENAMING.md).
 
 ## One-time maintainer setup
 

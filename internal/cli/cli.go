@@ -4,8 +4,8 @@
 package cli
 
 import (
+	"brundlesync/engine"
 	"context"
-	"douchesync/engine"
 	"flag"
 	"fmt"
 	"os"
@@ -19,7 +19,7 @@ func Run(ctx context.Context, args []string) error {
 	}
 	switch args[0] {
 	case "version", "-version", "--version":
-		fmt.Printf("DoucheSync %s\n", engine.Version())
+		fmt.Printf("BrundleSync %s\n", engine.Version())
 		return nil
 	case "keygen":
 		fmt.Println(engine.GenerateSecret())
@@ -68,19 +68,19 @@ func Run(ctx context.Context, args []string) error {
 		}
 		return engine.RunClient(ctx, cfg, *once)
 	default:
-		return fmt.Errorf("unknown command %q; use DoucheSync help", args[0])
+		return fmt.Errorf("unknown command %q; use BrundleSync help", args[0])
 	}
 }
 func usage() {
-	fmt.Printf(`DoucheSync %s — direct peer-to-peer folder sync
+	fmt.Printf(`BrundleSync %s — direct peer-to-peer folder sync
 
 Usage:
-  DoucheSync server -config=server.toml
-  DoucheSync client -config=client.toml [-once]
-  DoucheSync check-config -config=client.toml [-mode=server]
-  DoucheSync diagnose [-config=client.toml]
-  DoucheSync keygen
-  DoucheSync version
+  BrundleSync server -config=server.toml
+  BrundleSync client -config=client.toml [-once]
+  BrundleSync check-config -config=client.toml [-mode=server]
+  BrundleSync diagnose [-config=client.toml]
+  BrundleSync keygen
+  BrundleSync version
 
 Default config: %s
 `, engine.Version(), engine.DefaultConfigPath())

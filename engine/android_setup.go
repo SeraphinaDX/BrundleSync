@@ -54,7 +54,7 @@ func EncodeAndroidSetup(cfg Config, folderID string) (string, error) {
 
 func DecodeAndroidSetup(code string) (AndroidSetup, error) {
 	var s AndroidSetup
-	invalid := errors.New("invalid or unsupported DoucheSync camera setup QR code")
+	invalid := errors.New("invalid or unsupported BrundleSync camera setup QR code")
 	if len(code) > maxAndroidSetup || !strings.HasPrefix(code, androidSetupPrefix) {
 		return s, invalid
 	}

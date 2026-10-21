@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"douchesync/engine"
+	"brundlesync/engine"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -26,7 +26,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-//go:embed assets/douchesync.svg
+//go:embed assets/brundlesync.svg
 var applicationIcon []byte
 
 type desktopUI struct {
@@ -42,11 +42,11 @@ type desktopUI struct {
 }
 
 func main() {
-	config := flag.String("config", engine.DefaultConfigPath(), "existing DoucheSync TOML file")
+	config := flag.String("config", engine.DefaultConfigPath(), "existing BrundleSync TOML file")
 	autoStart := flag.Bool("start", false, "start syncing immediately")
 	flag.Parse()
 	a := app.NewWithID("ca.cerberusgames.douchesync")
-	a.SetIcon(fyne.NewStaticResource("douchesync.svg", applicationIcon))
+	a.SetIcon(fyne.NewStaticResource("brundlesync.svg", applicationIcon))
 	u := newUI(a, *config)
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -76,7 +76,7 @@ func main() {
 
 func newUI(a fyne.App, configPath string) *desktopUI {
 	a.Settings().SetTheme(applicationTheme{theme.DefaultTheme()})
-	u := &desktopUI{app: a, window: a.NewWindow("DoucheSync " + engine.Version()), configPath: configPath}
+	u := &desktopUI{app: a, window: a.NewWindow("BrundleSync " + engine.Version()), configPath: configPath}
 	u.state = widget.NewLabel("Stopped")
 	u.device = widget.NewLabel("")
 	u.problem = widget.NewLabel("")
@@ -127,7 +127,7 @@ func newUI(a fyne.App, configPath string) *desktopUI {
 	u.window.SetContent(container.NewBorder(container.NewHBox(u.start, u.stop, u.syncNow), nil, nil, nil, tabs))
 	u.window.Resize(fyne.NewSize(920, 620))
 	if tray, ok := a.(desktop.App); ok {
-		tray.SetSystemTrayMenu(fyne.NewMenu("DoucheSync", fyne.NewMenuItem("Show", u.window.Show), fyne.NewMenuItem("Sync now", u.controller.syncNow), fyne.NewMenuItem("Quit", u.quit)))
+		tray.SetSystemTrayMenu(fyne.NewMenu("BrundleSync", fyne.NewMenuItem("Show", u.window.Show), fyne.NewMenuItem("Sync now", u.controller.syncNow), fyne.NewMenuItem("Quit", u.quit)))
 		tray.SetSystemTrayWindow(u.window)
 	}
 	u.window.SetCloseIntercept(u.quit)

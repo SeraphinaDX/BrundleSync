@@ -79,13 +79,13 @@ jobs:
           ANDROID_SIGNING_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk "dist/DoucheSync-$RELEASE_TAG.apk"
-          python3 scripts/verify-android-release.py "dist/DoucheSync-$RELEASE_TAG.apk" "$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/BrundleSync-$RELEASE_TAG.apk"
+          python3 scripts/verify-android-release.py "dist/BrundleSync-$RELEASE_TAG.apk" "$ANDROID_HOME/build-tools/35.0.0/apksigner"
       - name: Publish verified APK for Obtainium
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "$RELEASE_TAG" "dist/DoucheSync-$RELEASE_TAG.apk" "dist/DoucheSync-$RELEASE_TAG.apk.sha256" --repo "$GITHUB_REPOSITORY"
+          gh release upload "$RELEASE_TAG" "dist/BrundleSync-$RELEASE_TAG.apk" "dist/BrundleSync-$RELEASE_TAG.apk.sha256" --repo "$GITHUB_REPOSITORY"
       - name: Remove signing key
         if: always()
         run: rm -f "$RUNNER_TEMP/douchesync-release.p12"

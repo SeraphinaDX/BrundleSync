@@ -37,7 +37,7 @@ func Diagnose(ctx context.Context, cfg Config, out io.Writer) error {
 	if display == "" {
 		display = "auto (see running client's registration below)"
 	}
-	fmt.Fprintf(out, "DoucheSync %s\nDevice: %s\nDiscovery: %s\nAdvertised: %s\nNAT traversal configured: %t\nUTC time: %s\n", version, cfg.Client.DeviceID, cfg.Client.DiscoveryURL, display, cfg.Client.NATTraversal, time.Now().UTC().Format(time.RFC3339))
+	fmt.Fprintf(out, "BrundleSync %s\nDevice: %s\nDiscovery: %s\nAdvertised: %s\nNAT traversal configured: %t\nUTC time: %s\n", version, cfg.Client.DeviceID, cfg.Client.DiscoveryURL, display, cfg.Client.NATTraversal, time.Now().UTC().Format(time.RFC3339))
 	c := &Client{cfg: cfg.Client, http: &http.Client{Timeout: 15 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return errors.New("discovery redirects are forbidden") }}}
 	var errs []error
 	for _, fc := range cfg.Folders {

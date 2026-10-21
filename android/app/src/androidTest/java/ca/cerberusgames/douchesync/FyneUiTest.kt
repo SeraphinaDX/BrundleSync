@@ -76,7 +76,7 @@ class FyneUiTest {
         // content, rather than accepting Android's transient starting window.
         assertTrue(
             "Fyne setup did not render",
-            device.wait(Until.hasObject(By.text("DoucheSync")), 15000),
+            device.wait(Until.hasObject(By.text("BrundleSync")), 15000),
         )
         device.pressHome()
     }

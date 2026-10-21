@@ -1,12 +1,12 @@
 [Unit]
-Description=DoucheSync discovery server
+Description=BrundleSync discovery server
 After=network.target
 
 [Service]
 Type=simple
 User=douchesync
 Group=douchesync
-ExecStart=/usr/local/bin/DoucheSync server -config=/etc/douchesync/server.toml
+ExecStart=/usr/local/bin/BrundleSync server -config=/etc/douchesync/server.toml
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

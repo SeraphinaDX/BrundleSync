@@ -3,8 +3,8 @@
 package main
 
 import (
+	"brundlesync/internal/cli"
 	"context"
-	"douchesync/internal/cli"
 	"log"
 	"os"
 	"os/signal"
@@ -16,7 +16,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	if err := cli.Run(ctx, os.Args[1:]); err != nil {
-		log.Printf("DoucheSync: %v", err)
+		log.Printf("BrundleSync: %v", err)
 		os.Exit(1)
 	}
 }

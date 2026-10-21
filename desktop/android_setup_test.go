@@ -2,7 +2,7 @@
 package main
 
 import (
-	"douchesync/engine"
+	"brundlesync/engine"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
 	"strings"

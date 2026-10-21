@@ -1,7 +1,10 @@
-# DoucheSync
+# BrundleSync
 
-DoucheSync 0.7.2 synchronizes files in one or more folders directly between
+BrundleSync 0.8.0 synchronizes files in one or more folders directly between
 machines. It is written in Go and configured with TOML.
+
+Formerly DoucheSync. Existing installations can upgrade without resetting their
+configuration, identity or folder history. See [upgrading after the rename](docs/RENAMING.md).
 
 ![Screenshot](douchesync.avif)
 
@@ -31,7 +34,7 @@ secrets** determine which folders synchronize.
 
 ```sh
 make gui
-./DoucheSyncGUI
+./BrundleSyncGUI
 ```
 
 Stop an existing CLI client before starting the GUI's engine. The Android app
@@ -136,7 +139,7 @@ The logs show the selected local address and, when successful:
 NAT traversal: public peer endpoint https://PUBLIC_IP:ASSIGNED_PORT
 ```
 
-`DoucheSync diagnose` reports the registered LAN/WAN endpoints and tests each one.
+`BrundleSync diagnose` reports the registered LAN/WAN endpoints and tests each one.
 It does not request or change router mappings. An unreachable LAN endpoint with a
 working public endpoint is a successful peer diagnosis.
 
@@ -145,9 +148,9 @@ working public endpoint is a successful peer diagnosis.
 Keep both clients running. In another terminal on each machine, run:
 
 ```sh
-./DoucheSync diagnose
+./BrundleSync diagnose
 # If the client uses an explicit config, use the same file:
-./DoucheSync diagnose -config=client.toml
+./BrundleSync diagnose -config=client.toml
 ```
 
 This command only queries discovery and tests signed, certificate-pinned peer
@@ -199,10 +202,10 @@ every scan; quiet output after a completed check is normal.
 Install **Go 1.25 or newer**, using a current patch release:
 
 ```sh
-git clone https://github.com/SeraphinaDX/DoucheSync.git
-cd DoucheSync
-CGO_ENABLED=0 go build -trimpath -o DoucheSync .
-./DoucheSync version
+git clone https://github.com/SeraphinaDX/DoucheSync.git BrundleSync
+cd BrundleSync
+CGO_ENABLED=0 go build -trimpath -o BrundleSync .
+./BrundleSync version
 ```
 
 Or run `make build` from the checkout. There is no cgo requirement. The TOML
@@ -212,14 +215,14 @@ licenses, so building from a complete checkout does not download modules.
 On Windows, use PowerShell:
 
 ```powershell
-git clone https://github.com/SeraphinaDX/DoucheSync.git
-cd DoucheSync
+git clone https://github.com/SeraphinaDX/DoucheSync.git BrundleSync
+cd BrundleSync
 $env:CGO_ENABLED = "0"
-go build -trimpath -o DoucheSync.exe .
-.\DoucheSync.exe version
+go build -trimpath -o BrundleSync.exe .
+.\BrundleSync.exe version
 ```
 
-Use `.\DoucheSync.exe` in place of `./DoucheSync` in the examples below.
+Use `.\BrundleSync.exe` in place of `./BrundleSync` in the examples below.
 The source supports Linux, Windows, and macOS. Local validation was performed
 on Linux; Windows and macOS builds were checked by cross-compilation.
 
@@ -228,9 +231,9 @@ on Linux; Windows and macOS builds were checked by cross-compilation.
 ### 1. Generate three different keys
 
 ```sh
-./DoucheSync keygen
-./DoucheSync keygen
-./DoucheSync keygen
+./BrundleSync keygen
+./BrundleSync keygen
+./BrundleSync keygen
 ```
 
 Each command prints a new 256-bit random key. Use one as the **discovery
@@ -244,8 +247,8 @@ Copy `examples/server.toml` to `server.toml` and replace its token placeholder
 with the discovery token. Start it with:
 
 ```sh
-./DoucheSync check-config -config=server.toml -mode=server
-./DoucheSync server -config=server.toml
+./BrundleSync check-config -config=server.toml -mode=server
+./BrundleSync server -config=server.toml
 ```
 
 By default it listens only on `127.0.0.1:7443`. Put an HTTPS reverse proxy in
@@ -282,8 +285,8 @@ Edit `client.toml`:
 Then run:
 
 ```sh
-./DoucheSync check-config -config=client.toml
-./DoucheSync client -config=client.toml
+./BrundleSync check-config -config=client.toml
+./BrundleSync client -config=client.toml
 ```
 
 All commands use explicit `-config=...` syntax. Put options after `client`,
@@ -531,30 +534,30 @@ For a client running under your user account:
 
 ```sh
 mkdir -p ~/.local/bin ~/.config/douchesync ~/.config/systemd/user
-cp DoucheSync ~/.local/bin/
+cp BrundleSync ~/.local/bin/
 cp client.toml ~/.config/douchesync/config.toml
 chmod 600 ~/.config/douchesync/config.toml
-cp examples/douchesync-client.service ~/.config/systemd/user/
+cp examples/brundlesync-client.service ~/.config/systemd/user/
 systemctl --user daemon-reload
-systemctl --user enable --now douchesync-client.service
-journalctl --user -u douchesync-client.service -f
+systemctl --user enable --now brundlesync-client.service
+journalctl --user -u brundlesync-client.service -f
 ```
 
 To keep the user service running after logout, enable lingering for your user
 if appropriate for that machine: `sudo loginctl enable-linger "$USER"`.
 
-For the VPS discovery service, `examples/douchesync-server.service` expects
-a `douchesync` system user, `/usr/local/bin/DoucheSync`, and
+For the VPS discovery service, `examples/brundlesync-server.service` expects
+a `douchesync` system user, `/usr/local/bin/BrundleSync`, and
 `/etc/douchesync/server.toml`. Install those and use:
 
 ```sh
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin douchesync
-sudo install -m 755 DoucheSync /usr/local/bin/DoucheSync
+sudo install -m 755 BrundleSync /usr/local/bin/BrundleSync
 sudo install -d -m 750 -o root -g douchesync /etc/douchesync
 sudo install -m 640 -o root -g douchesync server.toml /etc/douchesync/server.toml
-sudo cp examples/douchesync-server.service /etc/systemd/system/
+sudo cp examples/brundlesync-server.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now douchesync-server.service
+sudo systemctl enable --now brundlesync-server.service
 ```
 
 If that user already exists, skip `useradd`. Set up the HTTPS reverse proxy
@@ -575,8 +578,8 @@ but sending the discovery token over unencrypted public networks is unsafe.
 go test -buildvcs=false ./...
 go test -race -buildvcs=false ./...
 go vet -buildvcs=false ./...
-go build -trimpath -o DoucheSync .
-python3 scripts/smoke.py ./DoucheSync
+go build -trimpath -o BrundleSync .
+python3 scripts/smoke.py ./BrundleSync
 ```
 
 GitHub Actions runs tests and builds on Linux and Windows, plus Linux race,
@@ -587,7 +590,7 @@ server filesystem isolation, then shuts down the processes.
 For one scan and pull cycle:
 
 ```sh
-./DoucheSync client -config=client.toml -once
+./BrundleSync client -config=client.toml -once
 ```
 
 Use a continuous client on the other machine. `-once` announces, pulls, and

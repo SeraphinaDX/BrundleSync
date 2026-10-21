@@ -406,7 +406,7 @@ func (c *Client) cycle(ctx context.Context, watched bool) error {
 		peers := append([]Announcement(nil), c.peers[room]...)
 		c.mu.Unlock()
 		if len(peers) == 0 {
-			log.Printf("[%s] no matching peers discovered yet; run DoucheSync diagnose on both clients", f.cfg.ID)
+			log.Printf("[%s] no matching peers discovered yet; run BrundleSync diagnose on both clients", f.cfg.ID)
 		}
 		for _, a := range peers {
 			if ctx.Err() != nil {

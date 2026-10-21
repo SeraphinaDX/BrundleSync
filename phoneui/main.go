@@ -98,7 +98,7 @@ func phoneScroll(content fyne.CanvasObject) *container.Scroll {
 }
 
 func newPhoneUI(a fyne.App, b backend) *phoneUI {
-	u := &phoneUI{window: a.NewWindow("DoucheSync"), backend: b}
+	u := &phoneUI{window: a.NewWindow("BrundleSync"), backend: b}
 	u.headline = widget.NewLabelWithStyle("Setup needed", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	u.state = wrapped("Set up your camera backup")
 	u.message = wrapped("")
@@ -155,7 +155,7 @@ func newPhoneUI(a fyne.App, b backend) *phoneUI {
 	u.tabs = container.NewAppTabs(container.NewTabItemWithIcon("Status", theme.HomeIcon(), status), container.NewTabItemWithIcon("Activity", theme.HistoryIcon(), activity), container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), setup))
 	u.tabs.SetTabLocation(container.TabLocationBottom)
 	u.tabs.SelectIndex(2)
-	u.window.SetContent(container.NewBorder(widget.NewLabelWithStyle("DoucheSync", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}), nil, nil, nil, u.tabs))
+	u.window.SetContent(container.NewBorder(widget.NewLabelWithStyle("BrundleSync", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}), nil, nil, nil, u.tabs))
 	u.window.Resize(fyne.NewSize(390, 760))
 	u.render()
 	return u

@@ -14,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DoucheSyncAndroid"
+rootProject.name = "BrundleSyncAndroid"
 
 include(":app")
